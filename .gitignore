@@ -9,3 +9,4 @@ data/*.db
 data/*.json
 ARCHITECTURE.md
 landing_page.html
+.DS_Store
