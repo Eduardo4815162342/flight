@@ -1,6 +1,6 @@
 # CLAUDE.md — BSB Price Track
 
-Documentação técnica para o assistente de IA. Atualizado em: 2026-04-20.
+Documentação técnica para o assistente de IA. Atualizado em: 2026-04-27.
 
 ---
 
@@ -40,6 +40,7 @@ Bot de Telegram + rastreador agendado para monitorar passagens aéreas baratas e
 - `check-offers.yml` — a cada 2h: RSS de ofertas
 - `ci.yml` — em cada push/PR: typecheck + testes com cobertura
 - `test-summarize.yml` — dispatch manual: smoke test do OpenRouter
+- `deploy-dashboard.yml` — diariamente às 00h BRT: gera HTML do histórico e faz deploy no GitHub Pages
 
 ---
 
@@ -73,7 +74,8 @@ src/
 │   ├── priceHistory.ts     # Análise de histórico de preços
 │   └── retry.ts            # Retry com backoff exponencial
 └── scripts/
-    └── test-summarize.ts   # Smoke test manual do OpenRouter
+    ├── test-summarize.ts       # Smoke test manual do OpenRouter
+    └── generate-dashboard.ts   # Gera HTML estático em dist-pages/index.html (GitHub Pages)
 ```
 
 ---
@@ -145,6 +147,8 @@ created_at TEXT
 | `/buscar DESTINO` | Busca on-demand usando origem padrão e data de hoje+7 |
 | `/buscar ORIGEM DESTINO` | Busca com origem customizada |
 | `/buscar ORIGEM DESTINO DATA` | Busca numa data específica (DD/MM/YYYY) |
+| `/tendencia ORIGEM DESTINO` | Análise de tendência: direção (↑↓→), preço atual, menor histórico, melhor dia da semana e insight de timing de compra |
+| `/noticias` ou `/ofertas` | Liga/desliga recebimento de notícias e ofertas (toggle do `receives_news`); ambos invocam o mesmo handler |
 | `/status` | Exibe estado do servidor (apenas admin) |
 | `/autorizar ID` | Autoriza usuário manualmente (apenas admin, alternativa aos botões) |
 
@@ -171,6 +175,39 @@ Flight[] { priceBRL, airline, stops, durationMinutes, link, priceInsights? }
 
 **`ignoreMaxPrice`**: quando `true` (usado em `/buscar`), o parâmetro `max_price` NÃO é enviado ao Apify — retorna todos os preços e o bot exibe os 3 mais baratos. Quando `false` (tracker agendado), aplica o filtro `MAX_PRICE_BRL / USD_rate`.
 
+### Detecção de preço histórico baixo (alertas)
+
+`sendFlightAlert(flight, isHistoricLow, chatId)` recebe um booleano `isHistoricLow` calculado em `processAlert()` (`src/services/tracker.ts:118-132`):
+- `priceInsights.priceLevel === "low"` (sinalizado pelo Apify), **OU**
+- `priceBRL <= insights.lowestPrice * usdToBRL * 1.05` (margem de 5% sobre o menor preço histórico em USD)
+
+Quando `isHistoricLow=true`, a mensagem usa emoji 🔥 e título *"Nível de preço histórico BAIXO!"* em vez do ✈️ padrão.
+
+### Auto-desativação de alertas expirados
+
+No `runTracker()` (`src/services/tracker.ts:43-57`), antes de processar cada alerta:
+```typescript
+if (alert.id && new Date(alert.departure_date) < today) {
+  await deactivateAlert(alert.id);
+  await sendReply(alert.chat_id, "⏰ Alerta expirado e desativado…");
+  continue;
+}
+```
+- `deactivateAlert(id)` em `user.ts` faz `UPDATE alerts SET is_active = 0 WHERE id = ?`
+- Usuário recebe aviso e a iteração segue em frente
+
+### Análise de tendência (utilitários)
+
+**`src/utils/priceHistory.ts`**
+- `calcTrend(history, days=7, nowMs?)` → `{ direction: "up"|"down"|"stable", pct }` ou `null`. Limiares: `pct > 3` = "up"; `pct < -3` = "down"; senão "stable". Recebe `[ts_unix_seg, preço][]` (formato do Apify `priceInsights.priceHistory`).
+- `bestDayOfWeek(history)` → `{ dayIndex, dayName (pt-BR), avgPrice }` ou `null`. Agrupa por `getUTCDay()`, exige ≥2 dias distintos.
+- Tipos: `TrendResult`, `BestDayResult`.
+
+**`src/services/history.ts`**
+- `getRoutePriceHistory(origin, destination)` — agrega o array `priceHistory` do JSON de `flights` da tabela `history` para a rota dada
+- `getRouteLowestPrice(origin, destination)` — `MIN(cheapestPriceBRL)` da rota
+- `getFullHistory()` — carrega tudo (usado pelo dashboard)
+
 ---
 
 ## OpenRouter — Sumarização de Notícias
@@ -182,6 +219,12 @@ Flight[] { priceBRL, airline, stops, durationMinutes, link, priceInsights? }
 - Sem SDK — usa `axios` diretamente (já dependência do projeto)
 - Resposta: `response.data.choices[0].message.content`
 - `shouldSummarize()` só retorna `true` se `OPENROUTER_API_KEY` está definida E o artigo tem score < 2
+
+### Feeds RSS rastreados (`runNewsTracker()`)
+- `passageirodeprimeira.com/categorias/noticias`
+- `passageirodeprimeira.com/categorias/promocoes`
+- `pontospravoar.com`
+- `mestredasmilhas.com`
 
 ---
 
@@ -270,6 +313,17 @@ mock.onPost("https://openrouter.ai/api/v1/chat/completions").reply(200, {
 ---
 
 ## Mudanças Recentes (histórico)
+
+### 2026-04-27 — Análise histórica + dashboard
+- `/tendencia ORIGEM DESTINO`: novo comando que mostra direção do preço (`calcTrend`), melhor dia da semana (`bestDayOfWeek`), preço atual e menor histórico
+- `sendFlightAlert(flight, isHistoricLow, chatId)`: alertas de voo agora detectam quando o preço está em "nível baixo" via `priceInsights` do Google Flights (Apify) → mensagem com 🔥 em vez de ✈️
+- Auto-desativação de alertas expirados no `runTracker()` (`deactivateAlert(id)` em `user.ts`); usuário recebe aviso quando isso acontece
+- Dashboard automático: `src/scripts/generate-dashboard.ts` gera HTML estático em `dist-pages/index.html`; workflow `deploy-dashboard.yml` faz deploy diário no GitHub Pages (00h BRT)
+- Funções novas em `history.ts`: `getFullHistory()`, `getRoutePriceHistory()`, `getRouteLowestPrice()`
+- Funções novas em `priceHistory.ts`: `calcTrend()`, `bestDayOfWeek()`
+- Tipos novos: `TrendResult`, `BestDayResult` em `priceHistory.ts`
+- Comandos `/noticias` e `/ofertas`: toggle de `receives_news` via `toggleNewsPreference()`; ambos invocam o mesmo handler
+- Feeds RSS expandidos: agora rastreia 4 fontes (`pontospravoar.com` e `mestredasmilhas.com` adicionados)
 
 ### 2026-04 — Multi-usuário + autorização inline
 - Adicionado `UserRecord` interface e `getUserInfo()` em `user.ts`
