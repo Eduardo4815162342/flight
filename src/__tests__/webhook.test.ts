@@ -280,6 +280,76 @@ describe("Comandos de Alerta", () => {
     expect(body.text).toContain("Alerta criado");
   });
 
+  it("rejeita alerta com aeroporto inválido", async () => {
+    mock.onPost(/sendMessage/).reply(200, { ok: true });
+
+    await handleUpdate(msgUpdate(USER_ID, "/alerta BRASILIA GRU 20/12/2026 500"));
+
+    expect(userService.addAlert).not.toHaveBeenCalled();
+    const body = JSON.parse(mock.history.post[0].data);
+    expect(body.text).toContain("IATA");
+  });
+
+  it("rejeita alerta com data inválida", async () => {
+    mock.onPost(/sendMessage/).reply(200, { ok: true });
+
+    await handleUpdate(msgUpdate(USER_ID, "/alerta BSB GRU 31/02/2026 500"));
+
+    expect(userService.addAlert).not.toHaveBeenCalled();
+    const body = JSON.parse(mock.history.post[0].data);
+    expect(body.text).toContain("Data inválida");
+  });
+
+  it("rejeita alerta de ida e volta com volta antes da ida", async () => {
+    mock.onPost(/sendMessage/).reply(200, { ok: true });
+
+    await handleUpdate(msgUpdate(USER_ID, "/alerta BSB GRU 20/12/2026 19/12/2026 500"));
+
+    expect(userService.addAlert).not.toHaveBeenCalled();
+    const body = JSON.parse(mock.history.post[0].data);
+    expect(body.text).toContain("volta precisa ser depois");
+  });
+
+  it("rejeita alerta com preço inválido", async () => {
+    mock.onPost(/sendMessage/).reply(200, { ok: true });
+
+    await handleUpdate(msgUpdate(USER_ID, "/alerta BSB GRU 20/12/2026 abc"));
+
+    expect(userService.addAlert).not.toHaveBeenCalled();
+    const body = JSON.parse(mock.history.post[0].data);
+    expect(body.text).toContain("Preço inválido");
+  });
+
+  it("interpreta preço em formato brasileiro", async () => {
+    mock.onPost(/sendMessage/).reply(200, { ok: true });
+    (userService.addAlert as jest.Mock).mockResolvedValue(123);
+
+    await handleUpdate(msgUpdate(USER_ID, "/alerta BSB GRU 20/12/2026 R$1.200,50"));
+
+    expect(userService.addAlert).toHaveBeenCalledWith(expect.objectContaining({
+      max_price_brl: 1200.5,
+    }));
+  });
+
+  it("bloqueia /status para usuário autorizado que não é admin", async () => {
+    mock.onPost(/sendMessage/).reply(200, { ok: true });
+
+    await handleUpdate(msgUpdate(USER_ID, "/status"));
+
+    const body = JSON.parse(mock.history.post[0].data);
+    expect(body.text).toContain("restrito ao administrador");
+  });
+
+  it("bloqueia /autorizar para usuário autorizado que não é admin", async () => {
+    mock.onPost(/sendMessage/).reply(200, { ok: true });
+
+    await handleUpdate(msgUpdate(USER_ID, `/autorizar ${ADMIN_ID}`));
+
+    expect(userService.authorizeUser).not.toHaveBeenCalled();
+    const body = JSON.parse(mock.history.post[0].data);
+    expect(body.text).toContain("restrito ao administrador");
+  });
+
   it("permite editar preço de um alerta existente", async () => {
     mock.onPost(/sendMessage/).reply(200, { ok: true });
     (userService.updateAlertPrice as jest.Mock).mockResolvedValue(true);

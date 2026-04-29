@@ -225,14 +225,73 @@ async function handleCallbackQuery(
 }
 
 async function handleAutorizar(adminId: string, targetId: string): Promise<void> {
-  if (adminId !== config.telegram.chatId) return;
+  if (adminId !== config.telegram.chatId) {
+    await sendReply(adminId, "❌ Comando restrito ao administrador.");
+    return;
+  }
+
+  if (!targetId) {
+    await sendReply(adminId, "❌ Formato inválido.\nUse: `/autorizar ID`");
+    return;
+  }
+
   await userService.authorizeUser(targetId);
   await sendReply(adminId, `✅ Usuário \`${targetId}\` autorizado com sucesso!`);
   await sendReply(targetId, "🎉 Você acaba de ser *autorizado*.\n\nUse `/alerta ORIGEM DESTINO DATA PRECO` para começar.\nUse `/noticias` para gerenciar ofertas.");
 }
 
+function parseBRDate(raw: string): string | null {
+  const normalized = raw.includes("/") ? raw.split("/").reverse().join("-") : raw;
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(normalized);
+  if (!match) return null;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(Date.UTC(year, month - 1, day));
+
+  if (
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month - 1 ||
+    date.getUTCDate() !== day
+  ) {
+    return null;
+  }
+
+  return normalized;
+}
+
+function isBeforeToday(isoDate: string): boolean {
+  const today = new Date();
+  const todayUTC = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+  const [year, month, day] = isoDate.split("-").map(Number);
+  return Date.UTC(year, month - 1, day) < todayUTC;
+}
+
+function isAfterDate(a: string, b: string): boolean {
+  return new Date(`${a}T00:00:00Z`).getTime() > new Date(`${b}T00:00:00Z`).getTime();
+}
+
+function parsePrice(raw: string): number {
+  const cleaned = raw
+    .trim()
+    .replace(/\s/g, "")
+    .replace(/^R\$/i, "")
+    .replace(/[^\d.,]/g, "");
+
+  if (!cleaned) return NaN;
+
+  const normalized = cleaned.includes(",")
+    ? cleaned.replace(/\./g, "").replace(",", ".")
+    : /^\d{1,3}(\.\d{3})+$/.test(cleaned)
+      ? cleaned.replace(/\./g, "")
+      : cleaned;
+
+  return Number(normalized);
+}
+
 async function handleNovoAlerta(chatId: string, args: string[]): Promise<void> {
-  if (args.length < 4) {
+  if (args.length !== 4 && args.length !== 5) {
     await sendReply(chatId, "❌ Formato inválido.\nUse: `/alerta ORIGEM DESTINO DATA PRECO`\nEx: `/alerta BSB GRU 20/07/2026 350`\n\n(Ida e volta: `/alerta BSB GRU 10/10/2026 20/10/2026 800`)");
     return;
   }
@@ -241,21 +300,48 @@ async function handleNovoAlerta(chatId: string, args: string[]): Promise<void> {
   const destination = args[1].toUpperCase();
   const isRoundTrip = args.length === 5;
 
-  let departureDate = args[2];
-  let returnDate    = isRoundTrip ? args[3] : undefined;
+  const departureDate = parseBRDate(args[2]);
+  const returnDate    = isRoundTrip ? parseBRDate(args[3]) : undefined;
   const priceStr    = isRoundTrip ? args[4] : args[3];
 
-  if (departureDate.includes("/")) departureDate = departureDate.split("/").reverse().join("-");
-  if (returnDate?.includes("/"))   returnDate    = returnDate.split("/").reverse().join("-");
+  if (!/^[A-Z]{3}$/.test(origin) || !/^[A-Z]{3}$/.test(destination)) {
+    await sendReply(chatId, "❌ Origem e destino devem ser códigos IATA de 3 letras.\nEx: `BSB GRU`");
+    return;
+  }
 
-  const maxPrice = parseFloat(priceStr.replace(/[^0-9.]/g, ""));
+  if (origin === destination) {
+    await sendReply(chatId, "❌ Origem e destino precisam ser diferentes.");
+    return;
+  }
+
+  if (!departureDate || (isRoundTrip && !returnDate)) {
+    await sendReply(chatId, "❌ Data inválida.\nUse `DD/MM/AAAA` ou `AAAA-MM-DD`.");
+    return;
+  }
+
+  if (isBeforeToday(departureDate)) {
+    await sendReply(chatId, "❌ A data de ida precisa ser hoje ou uma data futura.");
+    return;
+  }
+
+  if (returnDate && !isAfterDate(returnDate, departureDate)) {
+    await sendReply(chatId, "❌ A data de volta precisa ser depois da data de ida.");
+    return;
+  }
+
+  const maxPrice = parsePrice(priceStr);
+
+  if (!Number.isFinite(maxPrice) || maxPrice <= 0) {
+    await sendReply(chatId, "❌ Preço inválido. Informe um valor positivo.\nEx: `/alerta BSB GRU 20/07/2026 350`");
+    return;
+  }
 
   await userService.addAlert({
     chat_id: chatId,
     origin,
     destination,
     departure_date: departureDate,
-    return_date: returnDate,
+    return_date: returnDate ?? undefined,
     trip_type: isRoundTrip ? "round-trip" : "one-way",
     max_price_brl: maxPrice,
     is_active: true,
@@ -459,6 +545,10 @@ export async function handleUpdate(update: TelegramUpdate): Promise<void> {
     } else if (cmd === "/autorizar") {
       await handleAutorizar(chatId, args[0]);
     } else if (cmd === "/status") {
+      if (chatId !== config.telegram.chatId) {
+        await sendReply(chatId, "❌ Comando restrito ao administrador.");
+        return;
+      }
       const now = new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
       await sendReply(chatId, `✅ *Status Admin*\n🕐 ${now}\n🛫 Origem padrão: ${config.search.origin}\n🚀 Servidor Railway Ativo`);
     } else if (cmd === "/buscar") {

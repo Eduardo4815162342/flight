@@ -117,4 +117,37 @@ describe("runTracker", () => {
       "user123"
     );
   });
+
+  it("consulta o preço anterior antes de gravar o histórico", async () => {
+    mockSearchWithApify.mockResolvedValue([makeFlight(200)]);
+    mockGetLastCheapestPrice.mockResolvedValue(250);
+
+    const { runTracker } = await import("../services/tracker");
+    await runTracker();
+
+    expect(mockGetLastCheapestPrice).toHaveBeenCalled();
+    expect(mockAppendHistory).toHaveBeenCalled();
+    expect(mockGetLastCheapestPrice.mock.invocationCallOrder[0])
+      .toBeLessThan(mockAppendHistory.mock.invocationCallOrder[0]);
+  });
+
+  it("não envia alerta quando preço abaixo do limite não caiu o suficiente", async () => {
+    mockSearchWithApify.mockResolvedValue([makeFlight(280)]);
+    mockGetLastCheapestPrice.mockResolvedValue(290);
+
+    const { runTracker } = await import("../services/tracker");
+    await runTracker();
+
+    expect(mockSendFlightAlert).not.toHaveBeenCalled();
+  });
+
+  it("envia alerta quando preço caiu pelo menos o threshold configurado", async () => {
+    mockSearchWithApify.mockResolvedValue([makeFlight(270)]);
+    mockGetLastCheapestPrice.mockResolvedValue(290);
+
+    const { runTracker } = await import("../services/tracker");
+    await runTracker();
+
+    expect(mockSendFlightAlert).toHaveBeenCalled();
+  });
 });

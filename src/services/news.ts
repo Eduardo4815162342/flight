@@ -172,12 +172,13 @@ export function buildNewsMessage(item: RssItem, summary?: string): string {
   return lines.join("\n");
 }
 
-export async function sendNewsAlert(item: RssItem, summary?: string): Promise<void> {
+export async function sendNewsAlert(item: RssItem, summary?: string): Promise<number> {
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
-  if (!botToken) return;
+  if (!botToken) return 0;
 
   const text = buildNewsMessage(item, summary);
   const usersToNotify = await getSubscribedUsers();
+  let sentCount = 0;
 
   for (const chatId of usersToNotify) {
     try {
@@ -187,10 +188,13 @@ export async function sendNewsAlert(item: RssItem, summary?: string): Promise<vo
         parse_mode: "Markdown",
         disable_web_page_preview: false,
       }, { timeout: TIMEOUT_MS });
+      sentCount++;
     } catch (err) {
       console.error(`[news] Erro ao enviar alerta para ${chatId}: ${formatError(err)}`);
     }
   }
+
+  return sentCount;
 }
 
 // ── Main Tracker ────────────────────────────────────────────────────────────
@@ -227,10 +231,14 @@ export async function trackRssFeed(feedConfig: FeedConfig): Promise<void> {
         } catch (e) {}
       }
       
-      await sendNewsAlert(item, summary);
-      await markGuidAsSeen(item.guid, feedConfig.feedName);
-      sentCount++;
-      console.log(`${tag} Enviado: ${item.title}`);
+      const deliveredCount = await sendNewsAlert(item, summary);
+      if (deliveredCount > 0) {
+        await markGuidAsSeen(item.guid, feedConfig.feedName);
+        sentCount++;
+        console.log(`${tag} Enviado: ${item.title} (${deliveredCount} usuário(s))`);
+      } else {
+        console.warn(`${tag} Não enviado para nenhum usuário: ${item.title}`);
+      }
     } catch (err) {
       console.error(`${tag} Erro no item "${item.title}": ${formatError(err)}`);
     }

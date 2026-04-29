@@ -89,6 +89,9 @@ async function processAlert(alert: UserAlert): Promise<void> {
   flights = applyAdvancedFilters(flights);
   
   const currentCheapest = flights.length > 0 ? Math.min(...flights.map(f => f.priceBRL)) : null;
+  const lastPrice = currentCheapest !== null
+    ? await getLastCheapestPrice(alert.origin, alert.destination, alert.departure_date)
+    : null;
 
   await appendHistory({
     timestamp: new Date().toISOString(),
@@ -108,9 +111,6 @@ async function processAlert(alert: UserAlert): Promise<void> {
   });
 
   if (currentCheapest && currentCheapest <= alert.max_price_brl) {
-    // Verifica anti-spam (só avisa se o preço for menor que o anterior ou se for a primeira vez)
-    const lastPrice = await getLastCheapestPrice(alert.origin, alert.destination, alert.departure_date);
-    
     // Se o preço não caiu pelo menos 5%, a gente pula para não encher o saco do usuário
     // Exceto se for a primeira vez (lastPrice === null)
     if (!lastPrice || currentCheapest <= lastPrice * config.search.priceDropThreshold) {

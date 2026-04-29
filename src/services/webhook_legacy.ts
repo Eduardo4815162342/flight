@@ -47,19 +47,19 @@ export async function handleBuscar(chatId: number, args: string[]): Promise<void
     try {
       flights = await searchWithRapidAPI(params);
     } catch (err) {
-      await sendReply(chatId, `❌ Falha ao buscar voos ${config.search.origin} → ${dest}.`);
+      await sendReply(chatId, `❌ Falha ao buscar voos ${origin} → ${dest}.`);
       return;
     }
   }
 
   if (flights.length === 0) {
-    await sendReply(chatId, `✈️ Nenhum voo encontrado para ${config.search.origin} → ${dest}.`);
+    await sendReply(chatId, `✈️ Nenhum voo encontrado para ${origin} → ${dest}.`);
     return;
   }
 
   const sorted = [...flights].sort((a, b) => a.priceBRL - b.priceBRL).slice(0, 3);
   const lines = [
-    `✈️ *${config.search.origin} → ${dest}*`,
+    `✈️ *${origin} → ${dest}*`,
     `📋 *Melhores preços agora:*`,
   ];
 

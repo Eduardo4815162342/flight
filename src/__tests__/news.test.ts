@@ -97,6 +97,30 @@ describe("News Service (Turso Sync)", () => {
 
       expect(mock.history.post.length).toBe(0);
     });
+
+    it("não marca notícia como vista quando nenhum envio tem sucesso", async () => {
+      mock.onGet(/passageirodeprimeira/).reply(200, RSS_WITH_MILHA);
+      mock.onPost(/sendMessage/).reply(500, { ok: false });
+
+      const mockExecute = jest.fn()
+        .mockResolvedValueOnce({ rows: [] }) // Para isGuidSeen
+        .mockResolvedValueOnce({ rows: [{ chat_id: "123456" }] }); // Para getSubscribedUsers
+
+      jest.spyOn(dbService, "getDb").mockReturnValue({
+        execute: mockExecute
+      } as any);
+
+      await trackRssFeed({
+        rssUrl: "https://passageirodeprimeira.com/feed/",
+        keywords: ["smiles"],
+        feedName: "news"
+      });
+
+      expect(mock.history.post.length).toBe(1);
+      expect(mockExecute).not.toHaveBeenCalledWith(expect.objectContaining({
+        sql: expect.stringContaining("INSERT OR IGNORE")
+      }));
+    });
   });
 
   describe("IA Summarization", () => {
