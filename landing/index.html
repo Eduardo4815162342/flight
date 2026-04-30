@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BSB Price Track | Alertas inteligentes de passagens e milhas</title>
+  <meta name="description" content="Receba alertas no Telegram quando passagens ficarem baratas e acompanhe notícias de milhas, ofertas e tendências de preço.">
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #14213d;
+      --muted: #596579;
+      --line: #d9e1ec;
+      --paper: #f7fafc;
+      --white: #ffffff;
+      --blue: #1769e0;
+      --blue-dark: #0f4fa8;
+      --green: #0f8f68;
+      --yellow: #f5b942;
+      --coral: #e85d45;
+      --shadow: 0 18px 50px rgba(20, 33, 61, 0.14);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      line-height: 1.5;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    img {
+      display: block;
+      max-width: 100%;
+    }
+
+    .page-shell {
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    .nav {
+      position: fixed;
+      top: 0;
+      right: 0;
+      left: 0;
+      z-index: 10;
+      border-bottom: 1px solid rgba(217, 225, 236, 0.84);
+      background: rgba(247, 250, 252, 0.92);
+      backdrop-filter: blur(16px);
+    }
+
+    .nav-inner,
+    .section-inner {
+      width: min(1120px, calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 68px;
+      gap: 24px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 34px;
+      height: 34px;
+      place-items: center;
+      border-radius: 8px;
+      background: var(--ink);
+      color: var(--white);
+      font-size: 18px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 650;
+    }
+
+    .nav-links a:hover {
+      color: var(--blue);
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 0 18px;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      font-weight: 750;
+      line-height: 1;
+      transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+    }
+
+    .button-primary {
+      background: var(--blue);
+      color: var(--white);
+      box-shadow: 0 10px 24px rgba(23, 105, 224, 0.28);
+    }
+
+    .button-primary:hover {
+      background: var(--blue-dark);
+    }
+
+    .button-secondary {
+      border-color: var(--line);
+      background: var(--white);
+      color: var(--ink);
+    }
+
+    .hero {
+      position: relative;
+      padding: 132px 0 64px;
+      background:
+        linear-gradient(90deg, rgba(247, 250, 252, 0.96) 0%, rgba(247, 250, 252, 0.82) 44%, rgba(247, 250, 252, 0.35) 100%),
+        url("https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=1800&q=80") center / cover;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.02fr) minmax(360px, 0.78fr);
+      gap: 44px;
+      align-items: center;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 18px;
+      padding: 8px 10px;
+      border: 1px solid rgba(23, 105, 224, 0.18);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.82);
+      color: var(--blue-dark);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      max-width: 760px;
+      margin-bottom: 20px;
+      font-size: clamp(42px, 7vw, 74px);
+      line-height: 0.96;
+      letter-spacing: 0;
+    }
+
+    .hero-copy {
+      max-width: 650px;
+      margin-bottom: 28px;
+      color: #31415b;
+      font-size: 20px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .trust-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      color: #40506a;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .trust-pill {
+      border: 1px solid rgba(20, 33, 61, 0.12);
+      border-radius: 8px;
+      padding: 8px 10px;
+      background: rgba(255, 255, 255, 0.74);
+    }
+
+    .bot-preview {
+      background: #0d1526;
+      color: var(--white);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    .phone-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      background: #14213d;
+    }
+
+    .phone-top strong {
+      font-size: 15px;
+    }
+
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #20d58a;
+      box-shadow: 0 0 0 4px rgba(32, 213, 138, 0.18);
+    }
+
+    .chat-feed {
+      display: grid;
+      gap: 14px;
+      padding: 18px;
+      background:
+        linear-gradient(rgba(13, 21, 38, 0.88), rgba(13, 21, 38, 0.88)),
+        repeating-linear-gradient(135deg, rgba(255,255,255,0.06) 0 1px, transparent 1px 18px);
+    }
+
+    .message {
+      border-radius: 8px;
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.09);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 14px;
+    }
+
+    .message.highlight {
+      background: rgba(15, 143, 104, 0.2);
+      border-color: rgba(32, 213, 138, 0.28);
+    }
+
+    .message-title {
+      margin-bottom: 8px;
+      font-weight: 850;
+    }
+
+    .price {
+      color: #74f0bc;
+      font-size: 28px;
+      font-weight: 900;
+    }
+
+    .message small {
+      display: block;
+      margin-top: 8px;
+      color: #b9c5d8;
+    }
+
+    section {
+      padding: 72px 0;
+    }
+
+    .section-head {
+      max-width: 720px;
+      margin-bottom: 34px;
+    }
+
+    .section-kicker {
+      margin-bottom: 10px;
+      color: var(--coral);
+      font-size: 13px;
+      font-weight: 850;
+      text-transform: uppercase;
+    }
+
+    h2 {
+      margin-bottom: 14px;
+      font-size: clamp(30px, 4vw, 46px);
+      line-height: 1.06;
+      letter-spacing: 0;
+    }
+
+    .section-head p {
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .feature-card,
+    .audience-card,
+    .step-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--white);
+      box-shadow: 0 10px 28px rgba(20, 33, 61, 0.06);
+    }
+
+    .feature-card {
+      padding: 24px;
+    }
+
+    .icon {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      margin-bottom: 18px;
+      place-items: center;
+      border-radius: 8px;
+      background: #eef5ff;
+      color: var(--blue);
+      font-size: 22px;
+    }
+
+    .feature-card h3,
+    .audience-card h3,
+    .step-card h3 {
+      margin-bottom: 8px;
+      font-size: 20px;
+      line-height: 1.2;
+    }
+
+    .feature-card p,
+    .audience-card p,
+    .step-card p {
+      margin-bottom: 0;
+      color: var(--muted);
+    }
+
+    .product-band {
+      background: var(--white);
+      border-block: 1px solid var(--line);
+    }
+
+    .product-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      gap: 42px;
+      align-items: center;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      background: #fbfdff;
+    }
+
+    .metric strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .dashboard-shot {
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: #101a2f;
+      box-shadow: var(--shadow);
+    }
+
+    .dash-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .window-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #ff6b6b;
+    }
+
+    .window-dot:nth-child(2) {
+      background: #ffd166;
+    }
+
+    .window-dot:nth-child(3) {
+      background: #06d6a0;
+    }
+
+    .dash-body {
+      padding: 22px;
+      color: var(--white);
+    }
+
+    .chart {
+      height: 210px;
+      margin-top: 18px;
+      border-radius: 8px;
+      background:
+        linear-gradient(180deg, rgba(23, 105, 224, 0.16), transparent),
+        linear-gradient(90deg, transparent 0 12%, rgba(255,255,255,0.08) 12% 12.5%, transparent 12.5% 25%, rgba(255,255,255,0.08) 25% 25.5%, transparent 25.5% 37%, rgba(255,255,255,0.08) 37% 37.5%, transparent 37.5% 50%, rgba(255,255,255,0.08) 50% 50.5%, transparent 50.5% 62%, rgba(255,255,255,0.08) 62% 62.5%, transparent 62.5% 75%, rgba(255,255,255,0.08) 75% 75.5%, transparent 75.5%),
+        #14213d;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .chart::before {
+      content: "";
+      position: absolute;
+      inset: 34px 20px 32px;
+      background:
+        linear-gradient(135deg, transparent 0 15%, var(--green) 15% 16.5%, transparent 16.5% 32%, var(--green) 32% 33.5%, transparent 33.5% 48%, var(--yellow) 48% 49.5%, transparent 49.5% 64%, var(--green) 64% 65.5%, transparent 65.5% 82%, var(--green) 82% 83.5%, transparent 83.5%);
+    }
+
+    .route-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .route-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 12px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      color: #dbe6f7;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .route-row strong {
+      color: #74f0bc;
+    }
+
+    .audience-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .audience-card {
+      padding: 20px;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+      counter-reset: steps;
+    }
+
+    .step-card {
+      position: relative;
+      padding: 26px;
+      counter-increment: steps;
+    }
+
+    .step-card::before {
+      content: counter(steps);
+      display: grid;
+      width: 34px;
+      height: 34px;
+      margin-bottom: 20px;
+      place-items: center;
+      border-radius: 8px;
+      background: var(--ink);
+      color: var(--white);
+      font-weight: 850;
+    }
+
+    .pricing-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      gap: 28px;
+      align-items: stretch;
+    }
+
+    .pricing-copy {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .pricing-copy p {
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .pricing-note {
+      margin-top: 18px;
+      padding: 14px;
+      border-left: 4px solid var(--green);
+      border-radius: 8px;
+      background: #eefaf5;
+      color: #235442;
+      font-weight: 750;
+    }
+
+    .price-cards {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .price-card {
+      display: flex;
+      flex-direction: column;
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--white);
+      box-shadow: 0 14px 36px rgba(20, 33, 61, 0.08);
+    }
+
+    .price-card.featured {
+      border-color: rgba(15, 143, 104, 0.44);
+      box-shadow: 0 18px 44px rgba(15, 143, 104, 0.16);
+    }
+
+    .price-badge {
+      display: inline-flex;
+      width: fit-content;
+      margin-bottom: 16px;
+      padding: 7px 9px;
+      border-radius: 8px;
+      background: #eef5ff;
+      color: var(--blue-dark);
+      font-size: 12px;
+      font-weight: 850;
+      text-transform: uppercase;
+    }
+
+    .price-card.featured .price-badge {
+      background: #eefaf5;
+      color: var(--green);
+    }
+
+    .price-card h3 {
+      margin-bottom: 8px;
+      font-size: 22px;
+    }
+
+    .price-value {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      margin: 14px 0 6px;
+    }
+
+    .price-value strong {
+      font-size: 42px;
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .price-value span,
+    .price-subtext {
+      color: var(--muted);
+      font-weight: 750;
+    }
+
+    .price-subtext {
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+
+    .price-list {
+      display: grid;
+      gap: 10px;
+      margin: 0 0 24px;
+      padding: 0;
+      list-style: none;
+      color: #3e4d64;
+      font-size: 15px;
+    }
+
+    .price-list li {
+      display: flex;
+      gap: 9px;
+    }
+
+    .price-list li::before {
+      content: "✓";
+      color: var(--green);
+      font-weight: 900;
+    }
+
+    .price-card .button {
+      margin-top: auto;
+    }
+
+    .cta-section {
+      padding: 82px 0;
+      background: #14213d;
+      color: var(--white);
+    }
+
+    .cta-box {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 30px;
+      align-items: center;
+    }
+
+    .cta-box h2 {
+      max-width: 760px;
+      margin-bottom: 12px;
+    }
+
+    .cta-box p {
+      max-width: 690px;
+      margin-bottom: 0;
+      color: #c7d4e8;
+      font-size: 18px;
+    }
+
+    .cta-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .cta-note {
+      color: #c7d4e8;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    footer {
+      padding: 28px 0;
+      background: #0d1526;
+      color: #aebbd0;
+      font-size: 14px;
+    }
+
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    @media (max-width: 900px) {
+      .nav-links {
+        display: none;
+      }
+
+      .hero {
+        padding-top: 112px;
+      }
+
+      .hero-grid,
+      .product-layout,
+      .pricing-layout,
+      .cta-box {
+        grid-template-columns: 1fr;
+      }
+
+      .feature-grid,
+      .price-cards,
+      .steps {
+        grid-template-columns: 1fr;
+      }
+
+      .audience-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .cta-actions {
+        align-items: flex-start;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .nav-inner,
+      .section-inner {
+        width: min(100% - 28px, 1120px);
+      }
+
+      .nav-inner {
+        min-height: 62px;
+      }
+
+      .button {
+        width: 100%;
+      }
+
+      .nav .button {
+        width: auto;
+        min-height: 40px;
+        padding-inline: 12px;
+        font-size: 13px;
+      }
+
+      .hero-actions,
+      .cta-actions {
+        width: 100%;
+      }
+
+      .hero {
+        padding: 104px 0 48px;
+      }
+
+      section {
+        padding: 52px 0;
+      }
+
+      h1 {
+        font-size: 42px;
+      }
+
+      .hero-copy {
+        font-size: 18px;
+      }
+
+      .bot-preview {
+        margin-top: 4px;
+      }
+
+      .metrics,
+      .audience-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .footer-inner {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <nav class="nav" aria-label="Navegação principal">
+      <div class="nav-inner">
+        <a class="brand" href="#top" aria-label="BSB Price Track">
+          <span class="brand-mark">✈</span>
+          <span>BSB Price Track</span>
+        </a>
+        <div class="nav-links" aria-label="Seções">
+          <a href="#beneficios">Benefícios</a>
+          <a href="#produto">Produto</a>
+          <a href="#publicos">Públicos</a>
+          <a href="#preco">Preço</a>
+          <a href="#como-funciona">Como funciona</a>
+        </div>
+        <a class="button button-primary" href="#preco" aria-label="Ver preço do BSB Price Track">Ver preço</a>
+      </div>
+    </nav>
+
+    <main id="top">
+      <header class="hero">
+        <div class="section-inner hero-grid">
+          <div>
+            <div class="eyebrow">Alertas de passagens, milhas e ofertas no Telegram</div>
+            <h1>Passagens baratas não deveriam depender de sorte.</h1>
+            <p class="hero-copy">
+              O BSB Price Track monitora rotas, compara preços e avisa no Telegram quando surge uma oportunidade real para viajar pagando menos.
+            </p>
+            <div class="hero-actions">
+              <a class="button button-primary" href="#preco">Teste grátis por 7 dias</a>
+              <a class="button button-secondary" href="#como-funciona">Ver como funciona</a>
+            </div>
+            <div class="trust-row" aria-label="Diferenciais principais">
+              <span class="trust-pill">Monitoramento automático</span>
+              <span class="trust-pill">Alertas por limite de preço</span>
+              <span class="trust-pill">Notícias de milhas e ofertas</span>
+            </div>
+          </div>
+
+          <aside class="bot-preview" aria-label="Prévia de alerta no Telegram">
+            <div class="phone-top">
+              <strong>BSB Price Track Bot</strong>
+              <span class="status-dot" aria-hidden="true"></span>
+            </div>
+            <div class="chat-feed">
+              <div class="message">
+                <div class="message-title">/alerta BSB GRU 20/07/2026 350</div>
+                Alerta criado. Eu aviso quando o preço estiver dentro do seu limite.
+              </div>
+              <div class="message highlight">
+                <div class="message-title">Passagem barata encontrada</div>
+                <div>BSB → GRU</div>
+                <div class="price">R$ 289</div>
+                <small>Preço abaixo do seu limite. Fonte: Google Flights via Apify.</small>
+              </div>
+              <div class="message">
+                <div class="message-title">Resumo de milhas</div>
+                Promoções e notícias relevantes chegam sem você precisar procurar em vários sites.
+              </div>
+            </div>
+          </aside>
+        </div>
+      </header>
+
+      <section id="beneficios">
+        <div class="section-inner">
+          <div class="section-head">
+            <div class="section-kicker">Por que usar</div>
+            <h2>Um assistente de viagem que trabalha antes de você abrir o navegador.</h2>
+            <p>
+              Criado para quem quer economizar tempo, evitar buscas repetitivas e agir rápido quando o preço fica bom.
+            </p>
+          </div>
+
+          <div class="feature-grid">
+            <article class="feature-card">
+              <div class="icon">🔔</div>
+              <h3>Alertas no momento certo</h3>
+              <p>Defina origem, destino, data e preço máximo. O bot monitora e avisa quando encontrar uma passagem dentro do seu limite.</p>
+            </article>
+
+            <article class="feature-card">
+              <div class="icon">📉</div>
+              <h3>Tendência de preço</h3>
+              <p>Veja se a rota está subindo, caindo ou estável, com base no histórico coletado pelo tracker.</p>
+            </article>
+
+            <article class="feature-card">
+              <div class="icon">📰</div>
+              <h3>Milhas sem ruído</h3>
+              <p>Receba notícias e ofertas de milhas filtradas por relevância, com resumo quando o artigo precisa de contexto.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="produto" class="product-band">
+        <div class="section-inner product-layout">
+          <div>
+            <div class="section-kicker">Produto</div>
+            <h2>Do alerta rápido ao histórico completo da rota.</h2>
+            <p>
+              O sistema combina bot no Telegram, buscas agendadas, fallback de API, histórico no banco e dashboard para acompanhar a evolução dos preços.
+            </p>
+            <div class="metrics" aria-label="Capacidades do produto">
+              <div class="metric">
+                <strong>2x</strong>
+                <span>checagens diárias de voos</span>
+              </div>
+              <div class="metric">
+                <strong>3x</strong>
+                <span>rodadas diárias de notícias</span>
+              </div>
+              <div class="metric">
+                <strong>24/7</strong>
+                <span>bot online via webhook</span>
+              </div>
+              <div class="metric">
+                <strong>5</strong>
+                <span>tokens Apify com rotação</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="dashboard-shot" aria-label="Prévia visual do dashboard">
+            <div class="dash-toolbar">
+              <span class="window-dot"></span>
+              <span class="window-dot"></span>
+              <span class="window-dot"></span>
+            </div>
+            <div class="dash-body">
+              <strong>Evolução dos preços</strong>
+              <div class="chart" aria-hidden="true"></div>
+              <div class="route-list">
+                <div class="route-row"><span>BSB → GRU</span><strong>R$ 289</strong></div>
+                <div class="route-row"><span>BSB → REC</span><strong>R$ 412</strong></div>
+                <div class="route-row"><span>BSB → FOR</span><strong>R$ 458</strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="publicos">
+        <div class="section-inner">
+          <div class="section-head">
+            <div class="section-kicker">Para quem é</div>
+            <h2>Útil para viagens pessoais, milhas e operação comercial.</h2>
+            <p>O mesmo fluxo atende quem viaja pouco, quem vive de promoção e quem precisa acompanhar oportunidades para clientes.</p>
+          </div>
+
+          <div class="audience-grid">
+            <article class="audience-card">
+              <h3>Viajantes comuns</h3>
+              <p>Receba alertas simples sem precisar aprender ferramentas complexas.</p>
+            </article>
+            <article class="audience-card">
+              <h3>Acumuladores de milhas</h3>
+              <p>Acompanhe ofertas e notícias relevantes no mesmo canal dos alertas.</p>
+            </article>
+            <article class="audience-card">
+              <h3>Família e amigos</h3>
+              <p>Crie alertas individuais com autorização controlada pelo administrador.</p>
+            </article>
+            <article class="audience-card">
+              <h3>Agências e empresas</h3>
+              <p>Monitore rotas recorrentes e responda mais rápido a boas oportunidades.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="preco" class="product-band">
+        <div class="section-inner pricing-layout">
+          <div class="pricing-copy">
+            <div class="section-kicker">Preço</div>
+            <h2>Comece por menos que uma taxa de embarque.</h2>
+            <p>
+              O preço recomendado é R$ 19,90/mês, com 7 dias grátis para o usuário comprovar valor antes da primeira cobrança.
+            </p>
+            <div class="pricing-note">
+              Melhor estratégia: teste grátis para reduzir atrito, mensal acessível para entrada e anual com desconto para usuários recorrentes.
+            </div>
+          </div>
+
+          <div class="price-cards" aria-label="Planos do BSB Price Track">
+            <article class="price-card featured">
+              <span class="price-badge">Recomendado</span>
+              <h3>Mensal</h3>
+              <div class="price-value">
+                <strong>R$ 19,90</strong>
+                <span>/mês</span>
+              </div>
+              <p class="price-subtext">7 dias grátis. Depois, R$ 19,90/mês. Cancele quando quiser.</p>
+              <ul class="price-list">
+                <li>Alertas de passagens no Telegram</li>
+                <li>Rotas e limites de preço personalizados</li>
+                <li>Busca rápida sob demanda</li>
+                <li>Notícias e ofertas de milhas filtradas</li>
+              </ul>
+              <a class="button button-primary" href="https://t.me/">Começar teste grátis</a>
+            </article>
+
+            <article class="price-card">
+              <span class="price-badge">Melhor valor</span>
+              <h3>Anual</h3>
+              <div class="price-value">
+                <strong>R$ 149,90</strong>
+                <span>/ano</span>
+              </div>
+              <p class="price-subtext">7 dias grátis. Depois, equivale a R$ 12,49/mês.</p>
+              <ul class="price-list">
+                <li>Todos os recursos do plano mensal</li>
+                <li>Economia de R$ 88,90 no ano</li>
+                <li>Ideal para viagens recorrentes</li>
+                <li>Prioridade para novas rotas e melhorias</li>
+              </ul>
+              <a class="button button-secondary" href="https://t.me/">Testar plano anual</a>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="como-funciona" class="product-band">
+        <div class="section-inner">
+          <div class="section-head">
+            <div class="section-kicker">Como funciona</div>
+            <h2>Três passos para sair da busca manual.</h2>
+            <p>O fluxo foi pensado para ser direto: pedir acesso, criar alertas e receber oportunidades quando elas aparecem.</p>
+          </div>
+
+          <div class="steps">
+            <article class="step-card">
+              <h3>Solicite acesso</h3>
+              <p>O administrador autoriza novos usuários no Telegram para manter o uso controlado.</p>
+            </article>
+            <article class="step-card">
+              <h3>Crie seus alertas</h3>
+              <p>Informe rota, data e preço máximo. Também dá para consultar buscas rápidas e tendências.</p>
+            </article>
+            <article class="step-card">
+              <h3>Receba o aviso</h3>
+              <p>Quando o preço entra no limite, o bot envia a passagem, a fonte e o link para conferir.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="acesso" class="cta-section">
+        <div class="section-inner cta-box">
+          <div>
+            <h2>Teste por 7 dias. Continue por R$ 19,90 por mês.</h2>
+            <p>
+              Experimente o BSB Price Track e transforme rotas, datas e limites de preço em alertas automáticos no Telegram antes da primeira cobrança.
+            </p>
+          </div>
+          <div class="cta-actions">
+            <a class="button button-primary" href="https://t.me/">Começar teste grátis</a>
+            <span class="cta-note">7 dias grátis. Depois R$ 19,90/mês. Acesso sujeito à aprovação do administrador.</span>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="section-inner footer-inner">
+        <span>BSB Price Track</span>
+        <span>Alertas de passagens, milhas e ofertas no Telegram.</span>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>
+<!--
+CHANGE LOG 📝
+- Criada landing page profissional em pasta dedicada para atrair usuários ao bot.
+- Incluídas seções de hero, benefícios, produto, públicos, funcionamento e CTA final.
+- Adicionada experiência responsiva e prévias visuais do bot no Telegram e do dashboard.
+- Atualizada para posicionar o bot como produto pago com plano mensal de R$ 19,90 e anual de R$ 149,90.
+- Adicionado teste grátis de 7 dias nos CTAs e cards de preço.
+-->

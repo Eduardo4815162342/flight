@@ -1,6 +1,12 @@
-name: Deploy Dashboard
+name: Deploy Pages
 
 on:
+  push:
+    branches: ["main"]
+    paths:
+      - "landing/**"
+      - "src/scripts/generate-dashboard.ts"
+      - ".github/workflows/deploy-dashboard.yml"
   schedule:
     # Todo dia à meia-noite (03:00 UTC = 00:00 BRT)
     - cron: "0 3 * * *"
@@ -42,6 +48,11 @@ jobs:
           TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
           TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
         run: npx ts-node src/scripts/generate-dashboard.ts
+
+      - name: Add Landing Page
+        run: |
+          mkdir -p dist-pages/landing
+          cp landing/index.html dist-pages/landing/index.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

@@ -10,3 +10,4 @@ data/*.json
 ARCHITECTURE.md
 landing_page.html
 .DS_Store
+landing/private/
