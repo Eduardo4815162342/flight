@@ -8,6 +8,13 @@ import { getRoutePriceHistory, getRouteLowestPrice } from "./history";
 import { calcTrend, bestDayOfWeek } from "../utils/priceHistory";
 import { answerTravelQuestion } from "./aiConcierge";
 import { canAskAI, recordAIQuery } from "./aiUsage";
+import {
+  activateSubscription,
+  cancelSubscription,
+  formatSubscriptionStatus,
+  getSubscriptionAccess,
+  startTrialIfMissing,
+} from "./subscription";
 
 const BASE_URL = `https://api.telegram.org/bot${config.telegram.botToken}`;
 const TIMEOUT_MS = 10_000;
@@ -142,14 +149,17 @@ async function handleStart(chatId: string, firstName?: string, username?: string
       "/alerta ORIGEM DESTINO DATA PRECO\n" +
       "/meusalertas — Lista alertas\n" +
       "/noticias — Ligar ou desligar ofertas\n" +
-      "/autorizar ID — Autoriza novo usuário"
+      "/assinatura — Ver status da assinatura\n" +
+      "/autorizar ID — Autoriza novo usuário\n" +
+      "/ativar ID DIAS — Libera assinatura manual\n" +
+      "/cancelar ID — Cancela assinatura manual"
     );
     return;
   }
 
   // Já autorizado
   if (existingUser?.is_authorized === 1) {
-    await sendReply(chatId, `👋 Olá ${firstName}! Você está autorizado.\n\nComandos:\n/alerta - Monitorar passagens\n/perguntar - Concierge de IA com histórico real\n/meusalertas - Gerenciar alertas\n/noticias - Ligar/desligar ofertas`);
+    await sendReply(chatId, `👋 Olá ${firstName}! Você está autorizado.\n\nComandos:\n/alerta - Monitorar passagens\n/perguntar - Concierge de IA com histórico real\n/meusalertas - Gerenciar alertas\n/assinatura - Ver seu acesso\n/noticias - Ligar/desligar ofertas`);
     return;
   }
 
@@ -200,11 +210,13 @@ async function handleCallbackQuery(
 
   if (action === "authorize") {
     await userService.authorizeUser(targetId);
+    await startTrialIfMissing(targetId);
     await answerCallbackQuery(callbackQueryId, "✅ Usuário autorizado!");
     await sendReply(
       targetId,
       "🎉 Seu acesso foi *aprovado*!\n\n" +
-      "Use `/alerta ORIGEM DESTINO DATA PRECO` para começar a monitorar passagens.\nUse `/noticias` para gerenciar o recebimento de ofertas."
+      "Seu *teste grátis de 7 dias* começou agora.\n\n" +
+      "Use `/alerta ORIGEM DESTINO DATA PRECO` para começar a monitorar passagens.\nUse `/assinatura` para ver seu acesso."
     );
     if (messageId) {
       await editMessageText(
@@ -239,8 +251,44 @@ async function handleAutorizar(adminId: string, targetId: string): Promise<void>
   }
 
   await userService.authorizeUser(targetId);
+  await startTrialIfMissing(targetId);
   await sendReply(adminId, `✅ Usuário \`${targetId}\` autorizado com sucesso!`);
-  await sendReply(targetId, "🎉 Você acaba de ser *autorizado*.\n\nUse `/alerta ORIGEM DESTINO DATA PRECO` para começar.\nUse `/noticias` para gerenciar ofertas.");
+  await sendReply(targetId, "🎉 Você acaba de ser *autorizado*.\n\nSeu *teste grátis de 7 dias* começou agora.\nUse `/alerta ORIGEM DESTINO DATA PRECO` para começar.\nUse `/assinatura` para ver seu acesso.");
+}
+
+async function handleAtivar(adminId: string, args: string[]): Promise<void> {
+  if (adminId !== config.telegram.chatId) {
+    await sendReply(adminId, "❌ Comando restrito ao administrador.");
+    return;
+  }
+
+  const targetId = args[0];
+  const days = args[1] ? Number(args[1]) : 30;
+  if (!targetId || !Number.isFinite(days) || days <= 0) {
+    await sendReply(adminId, "❌ Formato inválido.\nUse: `/ativar ID DIAS`\nEx: `/ativar 123456789 30`");
+    return;
+  }
+
+  const normalizedDays = Math.floor(days);
+  await activateSubscription(targetId, normalizedDays);
+  await sendReply(adminId, `✅ Assinatura de \`${targetId}\` ativada por *${normalizedDays} dia(s)*.`);
+  await sendReply(targetId, `✅ Sua assinatura foi ativada por *${normalizedDays} dia(s)*.`);
+}
+
+async function handleCancelar(adminId: string, targetId: string): Promise<void> {
+  if (adminId !== config.telegram.chatId) {
+    await sendReply(adminId, "❌ Comando restrito ao administrador.");
+    return;
+  }
+
+  if (!targetId) {
+    await sendReply(adminId, "❌ Formato inválido.\nUse: `/cancelar ID`");
+    return;
+  }
+
+  await cancelSubscription(targetId);
+  await sendReply(adminId, `🚫 Assinatura de \`${targetId}\` cancelada.`);
+  await sendReply(targetId, "🚫 Sua assinatura foi cancelada.");
 }
 
 function parseBRDate(raw: string): string | null {
@@ -506,6 +554,33 @@ async function handlePerguntar(chatId: string, args: string[]): Promise<void> {
   }
 }
 
+async function handleAssinatura(chatId: string): Promise<void> {
+  const access = await getSubscriptionAccess(chatId);
+  await sendReply(
+    chatId,
+    `${formatSubscriptionStatus(access)}\n\n` +
+    "Quando o período acabar, os comandos de busca, alerta e concierge ficam pausados até a renovação."
+  );
+}
+
+async function ensurePaidAccess(chatId: string, cmd: string): Promise<boolean> {
+  if (chatId === config.telegram.chatId) return true;
+
+  const freeCommands = new Set(["/assinatura", "/noticias", "/ofertas", "/autorizar", "/ativar", "/cancelar", "/status"]);
+  if (freeCommands.has(cmd)) return true;
+
+  const access = await getSubscriptionAccess(chatId);
+  if (access.hasAccess) return true;
+
+  await sendReply(
+    chatId,
+    `${formatSubscriptionStatus(access)}\n\n` +
+    "Para continuar usando o bot, renove sua assinatura. " +
+    "Enquanto isso, use `/assinatura` para consultar seu status."
+  );
+  return false;
+}
+
 // ── Dispatcher principal ────────────────────────────────────────────────────
 
 export async function handleUpdate(update: TelegramUpdate): Promise<void> {
@@ -553,6 +628,9 @@ export async function handleUpdate(update: TelegramUpdate): Promise<void> {
     return;
   }
 
+  const hasPaidAccess = await ensurePaidAccess(chatId, cmd);
+  if (!hasPaidAccess) return;
+
   try {
     if (cmd === "/alerta") {
       await handleNovoAlerta(chatId, args);
@@ -577,6 +655,12 @@ export async function handleUpdate(update: TelegramUpdate): Promise<void> {
       }
     } else if (cmd === "/autorizar") {
       await handleAutorizar(chatId, args[0]);
+    } else if (cmd === "/ativar") {
+      await handleAtivar(chatId, args);
+    } else if (cmd === "/cancelar") {
+      await handleCancelar(chatId, args[0]);
+    } else if (cmd === "/assinatura") {
+      await handleAssinatura(chatId);
     } else if (cmd === "/status") {
       if (chatId !== config.telegram.chatId) {
         await sendReply(chatId, "❌ Comando restrito ao administrador.");

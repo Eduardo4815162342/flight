@@ -161,11 +161,17 @@ export async function updateAlertPrice(chatId: string, alertId: number, newPrice
 /** Busca todos os alertas ativos de todos os usuários (usado pelo Tracker) */
 export async function getAllActiveAlerts(): Promise<UserAlert[]> {
   const db = getDb();
-  // Só busca alertas de usuários autorizados
+  // Só busca alertas de usuários autorizados com assinatura/teste ativo.
   const result = await db.execute(`
     SELECT a.* FROM alerts a
     JOIN users u ON a.chat_id = u.chat_id
+    JOIN subscriptions s ON s.chat_id = u.chat_id
     WHERE a.is_active = 1 AND u.is_authorized = 1
+      AND (
+        s.status = 'manual'
+        OR (s.status = 'trialing' AND s.trial_ends_at IS NOT NULL AND datetime(s.trial_ends_at) >= datetime('now'))
+        OR (s.status = 'active' AND (s.paid_until IS NULL OR datetime(s.paid_until) >= datetime('now')))
+      )
   `);
   return result.rows.map(row => ({
     id: Number(row.id),

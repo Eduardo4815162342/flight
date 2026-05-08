@@ -4,6 +4,7 @@ import { handleUpdate } from "../services/webhook";
 import * as userService from "../services/user";
 import * as aiConcierge from "../services/aiConcierge";
 import * as aiUsage from "../services/aiUsage";
+import * as subscription from "../services/subscription";
 
 // ── Mocks ─────────────────────────────────────────────────────────────────
 
@@ -37,6 +38,14 @@ jest.mock("../services/aiConcierge", () => ({
 jest.mock("../services/aiUsage", () => ({
   canAskAI: jest.fn(),
   recordAIQuery: jest.fn(),
+}));
+
+jest.mock("../services/subscription", () => ({
+  activateSubscription: jest.fn(),
+  cancelSubscription: jest.fn(),
+  formatSubscriptionStatus: jest.fn((access) => access.hasAccess ? "✅ Assinatura ativa" : "⏳ Seu acesso expirou."),
+  getSubscriptionAccess: jest.fn(),
+  startTrialIfMissing: jest.fn(),
 }));
 
 jest.mock("../services/db", () => ({
@@ -97,6 +106,10 @@ beforeEach(() => {
   (aiConcierge.answerTravelQuestion as jest.Mock).mockResolvedValue("Resposta do concierge");
   (aiUsage.canAskAI as jest.Mock).mockResolvedValue({ allowed: true, used: 0, limit: 10 });
   (aiUsage.recordAIQuery as jest.Mock).mockResolvedValue(undefined);
+  (subscription.getSubscriptionAccess as jest.Mock).mockResolvedValue({ hasAccess: true, status: "trialing", reason: "trial", daysLeft: 7 });
+  (subscription.startTrialIfMissing as jest.Mock).mockResolvedValue(undefined);
+  (subscription.activateSubscription as jest.Mock).mockResolvedValue(undefined);
+  (subscription.cancelSubscription as jest.Mock).mockResolvedValue(undefined);
 });
 
 // ── Chat privado apenas ────────────────────────────────────────────────────
@@ -226,6 +239,7 @@ describe("callback_query", () => {
     await handleUpdate(callbackUpdate(ADMIN_ID, ADMIN_ID, 99, `authorize:${USER_ID}`));
 
     expect(userService.authorizeUser).toHaveBeenCalledWith(String(USER_ID));
+    expect(subscription.startTrialIfMissing).toHaveBeenCalledWith(String(USER_ID));
 
     // answerCallbackQuery + sendMessage (usuário) + editMessageText
     const urls = mock.history.post.map(r => r.url);
@@ -364,6 +378,28 @@ describe("Comandos de Alerta", () => {
     expect(body.text).toContain("restrito ao administrador");
   });
 
+  it("admin ativa assinatura manualmente", async () => {
+    mock.onPost(/sendMessage/).reply(200, { ok: true });
+    (userService.isUserAuthorized as jest.Mock).mockResolvedValue(true);
+
+    await handleUpdate(msgUpdate(ADMIN_ID, `/ativar ${USER_ID} 30`, "Admin"));
+
+    expect(subscription.activateSubscription).toHaveBeenCalledWith(String(USER_ID), 30);
+    expect(mock.history.post).toHaveLength(2);
+    expect(JSON.parse(mock.history.post[0].data).text).toContain("ativada por");
+  });
+
+  it("admin cancela assinatura manualmente", async () => {
+    mock.onPost(/sendMessage/).reply(200, { ok: true });
+    (userService.isUserAuthorized as jest.Mock).mockResolvedValue(true);
+
+    await handleUpdate(msgUpdate(ADMIN_ID, `/cancelar ${USER_ID}`, "Admin"));
+
+    expect(subscription.cancelSubscription).toHaveBeenCalledWith(String(USER_ID));
+    expect(mock.history.post).toHaveLength(2);
+    expect(JSON.parse(mock.history.post[0].data).text).toContain("cancelada");
+  });
+
   it("permite editar preço de um alerta existente", async () => {
     mock.onPost(/sendMessage/).reply(200, { ok: true });
     (userService.updateAlertPrice as jest.Mock).mockResolvedValue(true);
@@ -440,5 +476,36 @@ describe("Comandos de Alerta", () => {
 
     const body = JSON.parse(mock.history.post[0].data);
     expect(body.text).toContain("Acesso negado");
+  });
+
+  it("bloqueia comandos pagos quando assinatura expirou", async () => {
+    mock.onPost(/sendMessage/).reply(200, { ok: true });
+    (userService.isUserAuthorized as jest.Mock).mockResolvedValue(true);
+    (subscription.getSubscriptionAccess as jest.Mock).mockResolvedValue({
+      hasAccess: false,
+      status: "trialing",
+      reason: "expired",
+    });
+
+    await handleUpdate(msgUpdate(USER_ID, "/alerta BSB GRU 20/12/2026 500"));
+
+    expect(userService.addAlert).not.toHaveBeenCalled();
+    const body = JSON.parse(mock.history.post[0].data);
+    expect(body.text).toContain("renove sua assinatura");
+  });
+
+  it("permite consultar /assinatura mesmo sem acesso pago", async () => {
+    mock.onPost(/sendMessage/).reply(200, { ok: true });
+    (userService.isUserAuthorized as jest.Mock).mockResolvedValue(true);
+    (subscription.getSubscriptionAccess as jest.Mock).mockResolvedValue({
+      hasAccess: false,
+      status: "trialing",
+      reason: "expired",
+    });
+
+    await handleUpdate(msgUpdate(USER_ID, "/assinatura"));
+
+    const body = JSON.parse(mock.history.post[0].data);
+    expect(body.text).toContain("comandos de busca");
   });
 });

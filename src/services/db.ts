@@ -97,4 +97,22 @@ export async function initTables(): Promise<void> {
       FOREIGN KEY (chat_id) REFERENCES users(chat_id)
     )
   `);
+
+  // Tabela de assinatura/teste grátis. Mantida separada de users.is_authorized
+  // para o admin continuar controlando acesso sem misturar billing.
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS subscriptions (
+      chat_id TEXT PRIMARY KEY,
+      status TEXT NOT NULL DEFAULT 'trialing',
+      plan TEXT DEFAULT 'basic',
+      trial_started_at TEXT,
+      trial_ends_at TEXT,
+      paid_until TEXT,
+      provider TEXT,
+      provider_customer_id TEXT,
+      provider_subscription_id TEXT,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (chat_id) REFERENCES users(chat_id)
+    )
+  `);
 }
