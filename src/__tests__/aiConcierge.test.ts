@@ -1,10 +1,22 @@
 const mockGetRoutePriceHistory = jest.fn();
 const mockGetRouteLowestPrice = jest.fn();
+const mockAppendHistory = jest.fn();
 const mockCompleteChat = jest.fn();
+const mockSearchWithApify = jest.fn();
+const mockSearchWithRapidAPI = jest.fn();
 
 jest.mock("../services/history", () => ({
+  appendHistory: (...args: unknown[]) => mockAppendHistory(...args),
   getRoutePriceHistory: (...args: unknown[]) => mockGetRoutePriceHistory(...args),
   getRouteLowestPrice: (...args: unknown[]) => mockGetRouteLowestPrice(...args),
+}));
+
+jest.mock("../apis/apify", () => ({
+  searchWithApify: (...args: unknown[]) => mockSearchWithApify(...args),
+}));
+
+jest.mock("../apis/rapidapi", () => ({
+  searchWithRapidAPI: (...args: unknown[]) => mockSearchWithRapidAPI(...args),
 }));
 
 jest.mock("../services/openrouter", () => ({
@@ -18,6 +30,9 @@ function daysAgo(days: number, price: number): [number, number] {
 describe("aiConcierge", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAppendHistory.mockResolvedValue(undefined);
+    mockSearchWithApify.mockResolvedValue([]);
+    mockSearchWithRapidAPI.mockResolvedValue([]);
     mockGetRouteLowestPrice.mockResolvedValue(487);
     mockCompleteChat.mockResolvedValue("Resposta contextual da IA");
   });
@@ -81,6 +96,86 @@ describe("aiConcierge", () => {
     const userMessage = mockCompleteChat.mock.calls[0][0][1].content.replace(/\s/g, " ");
     expect(userMessage).toContain("Último preço registrado: R$ 612,00");
     expect(userMessage).toContain("Menor preço histórico: R$ 487,00");
+  });
+
+  it("inclui preço ao vivo no contexto e salva snapshot no histórico", async () => {
+    mockSearchWithApify.mockResolvedValue([
+      {
+        origin: "BSB",
+        destination: "GRU",
+        departureDate: "2026-07-20",
+        tripType: "one-way",
+        price: 520,
+        currency: "BRL",
+        priceBRL: 520,
+        airline: "LATAM",
+        stops: 0,
+        link: "https://example.com",
+        source: "apify",
+      },
+    ]);
+    mockGetRoutePriceHistory.mockResolvedValue([
+      daysAgo(20, 487),
+      daysAgo(10, 575),
+      daysAgo(1, 612),
+    ]);
+    const { answerTravelQuestion } = await import("../services/aiConcierge");
+
+    await answerTravelQuestion("BSB GRU 20/07/2026 vale a pena comprar agora?");
+
+    expect(mockSearchWithApify).toHaveBeenCalledWith(expect.objectContaining({
+      origin: "BSB",
+      destination: "GRU",
+      departureDate: "2026-07-20",
+      ignoreMaxPrice: true,
+    }));
+    expect(mockAppendHistory).toHaveBeenCalledWith(expect.objectContaining({
+      origin: "BSB",
+      destination: "GRU",
+      departureDate: "2026-07-20",
+      cheapestPriceBRL: 520,
+      totalFound: 1,
+    }));
+
+    const userMessage = mockCompleteChat.mock.calls[0][0][1].content.replace(/\s/g, " ");
+    expect(userMessage).toContain("Busca ao vivo para 2026-07-20");
+    expect(userMessage).toContain("Menor preço ao vivo: R$ 520,00");
+    expect(userMessage).toContain("Companhia do menor preço: LATAM");
+  });
+
+  it("usa RapidAPI quando Apify falha na busca ao vivo", async () => {
+    mockSearchWithApify.mockRejectedValue(new Error("apify down"));
+    mockSearchWithRapidAPI.mockResolvedValue([
+      {
+        origin: "BSB",
+        destination: "GRU",
+        departureDate: "2026-07-20",
+        tripType: "one-way",
+        price: 540,
+        currency: "BRL",
+        priceBRL: 540,
+        link: "https://example.com",
+        source: "rapidapi",
+      },
+    ]);
+    mockGetRoutePriceHistory.mockResolvedValue([
+      daysAgo(20, 487),
+      daysAgo(10, 575),
+      daysAgo(1, 612),
+    ]);
+    const { answerTravelQuestion } = await import("../services/aiConcierge");
+
+    await answerTravelQuestion("BSB GRU 20/07/2026 comprar agora?");
+
+    expect(mockSearchWithRapidAPI).toHaveBeenCalledWith(expect.objectContaining({
+      origin: "BSB",
+      destination: "GRU",
+      departureDate: "2026-07-20",
+    }));
+    expect(mockAppendHistory).toHaveBeenCalledWith(expect.objectContaining({
+      cheapestPriceBRL: 540,
+      totalFound: 1,
+    }));
   });
 
   it("usa resposta local quando OpenRouter não retorna conteúdo", async () => {
