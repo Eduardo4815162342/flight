@@ -1,6 +1,7 @@
 import axios, { isAxiosError } from "axios";
 import { getDb } from "./db";
 import { getSubscribedUsers } from "./user";
+import { completeChat } from "./openrouter";
 
 function formatError(err: unknown): string {
   if (isAxiosError(err)) {
@@ -13,8 +14,6 @@ const RSS_URL = "https://passageirodeprimeira.com/categorias/noticias/feed/";
 const RSS_URL_PROMOCOES = "https://passageirodeprimeira.com/categorias/promocoes/feed/";
 const TIMEOUT_MS = 15_000;
 const DESCRIPTION_MAX_CHARS = 300;
-const SUMMARIZE_MODEL = "openrouter/elephant-alpha";
-const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const ARTICLE_MAX_WORDS = 1500;
 
 const MILHA_KEYWORDS = [
@@ -142,21 +141,13 @@ export async function fetchArticleText(url: string): Promise<string> {
 }
 
 export async function summarizeArticle(title: string, articleText: string): Promise<string | null> {
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) return null;
-  const response = await axios.post(
-    OPENROUTER_URL,
-    {
-      model: SUMMARIZE_MODEL,
-      max_tokens: 300,
-      messages: [
-        { role: "system", content: "Você é um assistente especialista em milhas e cartões. Resuma o artigo em pontos chave." },
-        { role: "user", content: `Artigo: "${title}"\n\n${articleText}\n\nResuma em 4-5 bullet points.` },
-      ],
-    },
-    { headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" }, timeout: TIMEOUT_MS }
+  return completeChat(
+    [
+      { role: "system", content: "Você é um assistente especialista em milhas e cartões. Resuma o artigo em pontos chave." },
+      { role: "user", content: `Artigo: "${title}"\n\n${articleText}\n\nResuma em 4-5 bullet points.` },
+    ],
+    { maxTokens: 300 }
   );
-  return response.data?.choices?.[0]?.message?.content?.trim() ?? null;
 }
 
 // ── Telegram ─────────────────────────────────────────────────────────────────

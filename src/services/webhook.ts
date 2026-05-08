@@ -6,6 +6,7 @@ import * as userService from "./user";
 import { getDb } from "./db";
 import { getRoutePriceHistory, getRouteLowestPrice } from "./history";
 import { calcTrend, bestDayOfWeek } from "../utils/priceHistory";
+import { answerTravelQuestion } from "./aiConcierge";
 
 const BASE_URL = `https://api.telegram.org/bot${config.telegram.botToken}`;
 const TIMEOUT_MS = 10_000;
@@ -136,6 +137,7 @@ async function handleStart(chatId: string, firstName?: string, username?: string
       "Comandos:\n" +
       "/status — Ver configuração\n" +
       "/buscar — Veja opções detalhadas de busca rápida\n" +
+      "/perguntar BSB GRU vale a pena comprar agora?\n" +
       "/alerta ORIGEM DESTINO DATA PRECO\n" +
       "/meusalertas — Lista alertas\n" +
       "/noticias — Ligar ou desligar ofertas\n" +
@@ -146,7 +148,7 @@ async function handleStart(chatId: string, firstName?: string, username?: string
 
   // Já autorizado
   if (existingUser?.is_authorized === 1) {
-    await sendReply(chatId, `👋 Olá ${firstName}! Você está autorizado.\n\nComandos:\n/alerta - Monitorar passagens\n/meusalertas - Gerenciar alertas\n/noticias - Ligar/desligar ofertas`);
+    await sendReply(chatId, `👋 Olá ${firstName}! Você está autorizado.\n\nComandos:\n/alerta - Monitorar passagens\n/perguntar - Concierge de IA com histórico real\n/meusalertas - Gerenciar alertas\n/noticias - Ligar/desligar ofertas`);
     return;
   }
 
@@ -473,6 +475,21 @@ async function handleTendencia(chatId: string, args: string[]): Promise<void> {
   await sendReply(chatId, lines.join("\n"));
 }
 
+async function handlePerguntar(chatId: string, args: string[]): Promise<void> {
+  const question = args.join(" ").trim();
+  if (!question) {
+    await sendReply(
+      chatId,
+      "❌ Formato: `/perguntar BSB GRU vale a pena comprar agora?`\n\nTambém funciona com: `/perguntar Vale a pena comprar BSB→GRU agora?`"
+    );
+    return;
+  }
+
+  await sendReply(chatId, "🤖 Analisando seu histórico e preparando uma recomendação...");
+  const answer = await answerTravelQuestion(question);
+  await sendReply(chatId, answer);
+}
+
 // ── Dispatcher principal ────────────────────────────────────────────────────
 
 export async function handleUpdate(update: TelegramUpdate): Promise<void> {
@@ -556,6 +573,8 @@ export async function handleUpdate(update: TelegramUpdate): Promise<void> {
       await handleBuscar(parseInt(chatId), args);
     } else if (cmd === "/tendencia") {
       await handleTendencia(chatId, args);
+    } else if (cmd === "/perguntar") {
+      await handlePerguntar(chatId, args);
     }
   } catch (err) {
     console.error(`[webhook] Erro no comando ${cmd}:`, err);

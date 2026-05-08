@@ -2,6 +2,7 @@ import axios from "axios";
 import MockAdapter from "axios-mock-adapter";
 import { handleUpdate } from "../services/webhook";
 import * as userService from "../services/user";
+import * as aiConcierge from "../services/aiConcierge";
 
 // ── Mocks ─────────────────────────────────────────────────────────────────
 
@@ -26,6 +27,10 @@ jest.mock("../services/user", () => ({
 
 jest.mock("../services/history", () => ({
   loadHistory: jest.fn().mockReturnValue([]),
+}));
+
+jest.mock("../services/aiConcierge", () => ({
+  answerTravelQuestion: jest.fn(),
 }));
 
 jest.mock("../services/db", () => ({
@@ -83,6 +88,7 @@ beforeEach(() => {
   (userService.saveUser         as jest.Mock).mockResolvedValue(undefined);
   (userService.authorizeUser    as jest.Mock).mockResolvedValue(undefined);
   (userService.rejectUser       as jest.Mock).mockResolvedValue(undefined);
+  (aiConcierge.answerTravelQuestion as jest.Mock).mockResolvedValue("Resposta do concierge");
 });
 
 // ── Chat privado apenas ────────────────────────────────────────────────────
@@ -370,6 +376,27 @@ describe("Comandos de Alerta", () => {
     expect(userService.removeAlert).toHaveBeenCalledWith(String(USER_ID), 10);
     const body = JSON.parse(mock.history.post[0].data);
     expect(body.text).toContain("removido com sucesso");
+  });
+
+  it("processa /perguntar usando o concierge de IA", async () => {
+    mock.onPost(/sendMessage/).reply(200, { ok: true });
+
+    await handleUpdate(msgUpdate(USER_ID, "/perguntar Vale a pena comprar BSB→GRU agora?"));
+
+    expect(aiConcierge.answerTravelQuestion).toHaveBeenCalledWith("Vale a pena comprar BSB→GRU agora?");
+    expect(mock.history.post).toHaveLength(2);
+    expect(JSON.parse(mock.history.post[0].data).text).toContain("Analisando");
+    expect(JSON.parse(mock.history.post[1].data).text).toContain("Resposta do concierge");
+  });
+
+  it("orienta o formato quando /perguntar vem sem pergunta", async () => {
+    mock.onPost(/sendMessage/).reply(200, { ok: true });
+
+    await handleUpdate(msgUpdate(USER_ID, "/perguntar"));
+
+    expect(aiConcierge.answerTravelQuestion).not.toHaveBeenCalled();
+    const body = JSON.parse(mock.history.post[0].data);
+    expect(body.text).toContain("/perguntar BSB GRU");
   });
 
   it("bloqueia comandos para usuários não autorizados", async () => {
