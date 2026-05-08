@@ -52,7 +52,7 @@ describe("Subscription Service", () => {
 
     expect(execute).toHaveBeenCalledWith(expect.objectContaining({
       sql: expect.stringContaining("status = 'active'"),
-      args: ["chat-1", "basic", "2026-06-07T12:00:00.000Z", "2026-05-08T12:00:00.000Z"],
+      args: ["chat-1", "basic", "2026-06-07T12:00:00.000Z", "manual", null, null, "2026-05-08T12:00:00.000Z"],
     }));
   });
 

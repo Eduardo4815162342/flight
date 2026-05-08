@@ -24,6 +24,13 @@ export interface SubscriptionAccess {
   daysLeft?: number;
 }
 
+export interface ActivateSubscriptionOptions {
+  plan?: string;
+  provider?: string;
+  providerCustomerId?: string;
+  providerSubscriptionId?: string;
+}
+
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 export function getTrialDays(): number {
@@ -77,21 +84,34 @@ export async function startTrialIfMissing(chatId: string, now = new Date()): Pro
 export async function activateSubscription(
   chatId: string,
   days = 30,
-  plan = "basic",
+  planOrOptions: string | ActivateSubscriptionOptions = "basic",
   now = new Date()
 ): Promise<void> {
+  const options = typeof planOrOptions === "string" ? { plan: planOrOptions } : planOrOptions;
+  const plan = options.plan ?? "basic";
+  const provider = options.provider ?? "manual";
   const paidUntil = addDays(now, Math.max(1, Math.floor(days))).toISOString();
   await getDb().execute({
     sql: `INSERT INTO subscriptions
-          (chat_id, status, plan, paid_until, provider, updated_at)
-          VALUES (?, 'active', ?, ?, 'manual', ?)
+          (chat_id, status, plan, paid_until, provider, provider_customer_id, provider_subscription_id, updated_at)
+          VALUES (?, 'active', ?, ?, ?, ?, ?, ?)
           ON CONFLICT(chat_id) DO UPDATE SET
             status = 'active',
             plan = excluded.plan,
             paid_until = excluded.paid_until,
             provider = excluded.provider,
+            provider_customer_id = excluded.provider_customer_id,
+            provider_subscription_id = excluded.provider_subscription_id,
             updated_at = excluded.updated_at`,
-    args: [chatId, plan, paidUntil, now.toISOString()],
+    args: [
+      chatId,
+      plan,
+      paidUntil,
+      provider,
+      options.providerCustomerId ?? null,
+      options.providerSubscriptionId ?? null,
+      now.toISOString(),
+    ],
   });
 }
 

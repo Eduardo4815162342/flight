@@ -83,6 +83,7 @@ npm test -- --coverage  # testes + relatório de cobertura
 | `TELEGRAM_CHAT_ID` | ID do chat/grupo para receber alertas |
 | `DESTINATIONS` | Destinos separados por vírgula (ex: `GRU,SDL,FOR`) |
 | `OPENROUTER_API_KEY` | (Opcional) Chave da OpenRouter para resumos de notícias com IA |
+| `CAKTO_WEBHOOK_SECRET` | (Opcional, recomendado) Segredo para validar chamadas da Cakto em `/webhooks/cakto` |
 
 ### Opcionais
 
@@ -101,6 +102,8 @@ npm test -- --coverage  # testes + relatório de cobertura
 | `PRICE_DROP_THRESHOLD` | `0.95` | Fator de queda para acionar o alerta (0.95 = queda de 5%). Ex: `0.90` para alertar só com queda ≥ 10%. |
 | `HISTORY_RETENTION_DAYS` | `365` | Quantos dias de histórico manter. Entradas mais antigas são removidas automaticamente. |
 | `WEBHOOK_PORT` | `3000` | Porta para o servidor de webhook do bot |
+| `TRIAL_DAYS` | `7` | Duração do teste grátis ao autorizar um usuário |
+| `CAKTO_ACCESS_DAYS` | `30` | Dias liberados por compra/renovação da Cakto quando o payload não informar duração |
 | `AIRLINES_WHITELIST` | — | Lista de companhias (ex: `LATAM,GOL`) |
 | `MAX_STOPS` | — | Máximo de escalas (0 = direto) |
 | `MAX_DURATION_HOURS`| — | Duração máxima do voo em horas |

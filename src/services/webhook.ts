@@ -696,6 +696,20 @@ export function startWebhookServer(): void {
     let body = "";
     req.on("data", (chunk) => (body += chunk.toString()));
     req.on("end", () => {
+      if (req.url?.startsWith("/webhooks/cakto")) {
+        (async () => {
+          const { handleCaktoWebhook } = await import("./caktoWebhook");
+          const result = await handleCaktoWebhook(body, req.headers, req.url);
+          res.writeHead(result.statusCode, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ ok: result.ok, message: result.message }));
+        })().catch((err) => {
+          console.error("[webhook] Erro ao processar webhook Cakto:", err instanceof Error ? err.message : err);
+          res.writeHead(500, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ ok: false, message: "internal_error" }));
+        });
+        return;
+      }
+
       // Responde 200 imediatamente para o Telegram não reenviar por timeout
       res.writeHead(200);
       res.end("OK");
