@@ -7,6 +7,7 @@ import { getDb } from "./db";
 import { getRoutePriceHistory, getRouteLowestPrice } from "./history";
 import { calcTrend, bestDayOfWeek } from "../utils/priceHistory";
 import { answerTravelQuestion } from "./aiConcierge";
+import { canAskAI, recordAIQuery } from "./aiUsage";
 
 const BASE_URL = `https://api.telegram.org/bot${config.telegram.botToken}`;
 const TIMEOUT_MS = 10_000;
@@ -485,9 +486,24 @@ async function handlePerguntar(chatId: string, args: string[]): Promise<void> {
     return;
   }
 
+  const usage = await canAskAI(chatId);
+  if (!usage.allowed) {
+    await sendReply(
+      chatId,
+      `⏳ Você atingiu o limite de *${usage.limit} pergunta(s)* ao concierge nas últimas 24h.\n\nTente novamente mais tarde ou use \`/tendencia ORIGEM DESTINO\` para uma análise sem IA.`
+    );
+    return;
+  }
+
   await sendReply(chatId, "🤖 Analisando seu histórico e preparando uma recomendação...");
-  const answer = await answerTravelQuestion(question);
-  await sendReply(chatId, answer);
+  try {
+    const answer = await answerTravelQuestion(question);
+    await recordAIQuery(chatId, question, true);
+    await sendReply(chatId, answer);
+  } catch (err) {
+    await recordAIQuery(chatId, question, false);
+    throw err;
+  }
 }
 
 // ── Dispatcher principal ────────────────────────────────────────────────────

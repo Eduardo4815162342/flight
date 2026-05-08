@@ -85,4 +85,16 @@ export async function initTables(): Promise<void> {
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  // Tabela de uso do concierge de IA (/perguntar)
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS ai_queries (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      chat_id TEXT NOT NULL,
+      question TEXT NOT NULL,
+      success INTEGER DEFAULT 1,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (chat_id) REFERENCES users(chat_id)
+    )
+  `);
 }

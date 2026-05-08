@@ -3,6 +3,7 @@ import MockAdapter from "axios-mock-adapter";
 import { handleUpdate } from "../services/webhook";
 import * as userService from "../services/user";
 import * as aiConcierge from "../services/aiConcierge";
+import * as aiUsage from "../services/aiUsage";
 
 // ── Mocks ─────────────────────────────────────────────────────────────────
 
@@ -31,6 +32,11 @@ jest.mock("../services/history", () => ({
 
 jest.mock("../services/aiConcierge", () => ({
   answerTravelQuestion: jest.fn(),
+}));
+
+jest.mock("../services/aiUsage", () => ({
+  canAskAI: jest.fn(),
+  recordAIQuery: jest.fn(),
 }));
 
 jest.mock("../services/db", () => ({
@@ -89,6 +95,8 @@ beforeEach(() => {
   (userService.authorizeUser    as jest.Mock).mockResolvedValue(undefined);
   (userService.rejectUser       as jest.Mock).mockResolvedValue(undefined);
   (aiConcierge.answerTravelQuestion as jest.Mock).mockResolvedValue("Resposta do concierge");
+  (aiUsage.canAskAI as jest.Mock).mockResolvedValue({ allowed: true, used: 0, limit: 10 });
+  (aiUsage.recordAIQuery as jest.Mock).mockResolvedValue(undefined);
 });
 
 // ── Chat privado apenas ────────────────────────────────────────────────────
@@ -383,7 +391,9 @@ describe("Comandos de Alerta", () => {
 
     await handleUpdate(msgUpdate(USER_ID, "/perguntar Vale a pena comprar BSB→GRU agora?"));
 
+    expect(aiUsage.canAskAI).toHaveBeenCalledWith(String(USER_ID));
     expect(aiConcierge.answerTravelQuestion).toHaveBeenCalledWith("Vale a pena comprar BSB→GRU agora?");
+    expect(aiUsage.recordAIQuery).toHaveBeenCalledWith(String(USER_ID), "Vale a pena comprar BSB→GRU agora?", true);
     expect(mock.history.post).toHaveLength(2);
     expect(JSON.parse(mock.history.post[0].data).text).toContain("Analisando");
     expect(JSON.parse(mock.history.post[1].data).text).toContain("Resposta do concierge");
@@ -397,6 +407,29 @@ describe("Comandos de Alerta", () => {
     expect(aiConcierge.answerTravelQuestion).not.toHaveBeenCalled();
     const body = JSON.parse(mock.history.post[0].data);
     expect(body.text).toContain("/perguntar BSB GRU");
+  });
+
+  it("bloqueia /perguntar quando usuário atinge limite de IA", async () => {
+    mock.onPost(/sendMessage/).reply(200, { ok: true });
+    (aiUsage.canAskAI as jest.Mock).mockResolvedValue({ allowed: false, used: 10, limit: 10 });
+
+    await handleUpdate(msgUpdate(USER_ID, "/perguntar BSB GRU vale a pena?"));
+
+    expect(aiConcierge.answerTravelQuestion).not.toHaveBeenCalled();
+    expect(aiUsage.recordAIQuery).not.toHaveBeenCalled();
+    const body = JSON.parse(mock.history.post[0].data);
+    expect(body.text).toContain("atingiu o limite");
+  });
+
+  it("registra falha de /perguntar quando concierge lança erro", async () => {
+    mock.onPost(/sendMessage/).reply(200, { ok: true });
+    (aiConcierge.answerTravelQuestion as jest.Mock).mockRejectedValue(new Error("boom"));
+
+    await handleUpdate(msgUpdate(USER_ID, "/perguntar BSB GRU vale a pena?"));
+
+    expect(aiUsage.recordAIQuery).toHaveBeenCalledWith(String(USER_ID), "BSB GRU vale a pena?", false);
+    const lastMessage = JSON.parse(mock.history.post[mock.history.post.length - 1].data);
+    expect(lastMessage.text).toContain("Erro ao processar comando");
   });
 
   it("bloqueia comandos para usuários não autorizados", async () => {
