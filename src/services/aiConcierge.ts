@@ -26,6 +26,7 @@ interface RouteStats {
 
 interface LiveSearchResult {
   searchDate: string;
+  usedDefaultDate: boolean;
   totalFound: number;
   bestFlight: Flight;
 }
@@ -116,7 +117,9 @@ async function fetchLiveRoutePrice(
   route: Route,
   question: string
 ): Promise<LiveSearchResult | null> {
-  const searchDate = parseQuestionDate(question) ?? defaultSearchDate();
+  const parsedDate = parseQuestionDate(question);
+  const searchDate = parsedDate ?? defaultSearchDate();
+  const usedDefaultDate = parsedDate === null;
   const params: SearchParams = {
     origin: route.origin,
     destination: route.destination,
@@ -158,7 +161,7 @@ async function fetchLiveRoutePrice(
     })),
   });
 
-  return { searchDate, totalFound: flights.length, bestFlight };
+  return { searchDate, usedDefaultDate, totalFound: flights.length, bestFlight };
 }
 
 async function buildRouteStats(route: Route, nowMs = Date.now()): Promise<RouteStats | null> {
@@ -210,6 +213,7 @@ async function describeLiveInsights(live: LiveSearchResult | null): Promise<stri
   const flight = live.bestFlight;
   const lines = [
     `Busca ao vivo para ${live.searchDate}: ${live.totalFound} voo(s) encontrado(s)`,
+    `Data da busca foi assumida automaticamente: ${live.usedDefaultDate ? "sim" : "não"}`,
     `Menor preço ao vivo: ${formatBRL(flight.priceBRL)}`,
     `Fonte ao vivo: ${flight.source}`,
     `Companhia do menor preço: ${flight.airline ?? "indisponível"}`,
@@ -264,6 +268,7 @@ export async function buildConciergePrompt(
     "Responda em português do Brasil, em no máximo 8 linhas.",
     "Seja prático e honesto. Não invente dados.",
     "Priorize o preço ao vivo quando ele estiver disponível.",
+    "Se a data foi assumida automaticamente, avise isso ao usuário e explique como perguntar com uma data específica.",
     "Dê uma recomendação explícita: comprar agora, esperar, ou criar alerta.",
     "Se os dados forem insuficientes para uma decisão forte, diga isso claramente.",
   );
@@ -279,6 +284,9 @@ function fallbackAnswer(question: string, route: Route, stats: RouteStats | null
   ];
 
   if (live) {
+    if (live.usedDefaultDate) {
+      lines.push(`Não encontrei uma data na pergunta, então analisei uma ida para *${live.searchDate}*.`);
+    }
     lines.push(
       `Menor preço ao vivo (${live.searchDate}): *${formatBRL(live.bestFlight.priceBRL)}*`,
       `Fonte: ${live.bestFlight.source}`,
@@ -310,6 +318,10 @@ function fallbackAnswer(question: string, route: Route, stats: RouteStats | null
     lines.push("Recomendação: *criar alerta* e monitorar. Os dados não mostram uma oportunidade muito forte agora.");
   }
 
+  if (live?.usedDefaultDate) {
+    lines.push("", "Para uma data específica, use:\n`/perguntar BSB GRU 20/07/2026 vale a pena comprar?`");
+  }
+
   lines.push("", `_Pergunta analisada: ${question}_`);
   return lines.join("\n");
 }
@@ -338,5 +350,10 @@ export async function answerTravelQuestion(question: string): Promise<string> {
     { maxTokens: 420, temperature: 0.2 }
   );
 
-  return aiAnswer ?? fallbackAnswer(question, route, stats, live);
+  const answer = aiAnswer ?? fallbackAnswer(question, route, stats, live);
+  if (aiAnswer && live?.usedDefaultDate) {
+    return `${answer}\n\n_Obs.: não encontrei uma data na pergunta, então analisei uma ida para ${live.searchDate}. Para escolher outra data, use: /perguntar BSB GRU 20/07/2026 vale a pena comprar?_`;
+  }
+
+  return answer;
 }

@@ -139,8 +139,39 @@ describe("aiConcierge", () => {
 
     const userMessage = mockCompleteChat.mock.calls[0][0][1].content.replace(/\s/g, " ");
     expect(userMessage).toContain("Busca ao vivo para 2026-07-20");
+    expect(userMessage).toContain("Data da busca foi assumida automaticamente: não");
     expect(userMessage).toContain("Menor preço ao vivo: R$ 520,00");
     expect(userMessage).toContain("Companhia do menor preço: LATAM");
+  });
+
+  it("avisa quando usa data padrão por falta de data explícita", async () => {
+    mockSearchWithApify.mockResolvedValue([
+      {
+        origin: "BSB",
+        destination: "GRU",
+        departureDate: "2026-07-20",
+        tripType: "one-way",
+        price: 520,
+        currency: "BRL",
+        priceBRL: 520,
+        link: "https://example.com",
+        source: "apify",
+      },
+    ]);
+    mockGetRoutePriceHistory.mockResolvedValue([
+      daysAgo(20, 487),
+      daysAgo(10, 575),
+      daysAgo(1, 612),
+    ]);
+    const { answerTravelQuestion } = await import("../services/aiConcierge");
+
+    const answer = await answerTravelQuestion("BSB GRU vale a pena comprar agora?");
+
+    expect(answer).toContain("não encontrei uma data");
+    expect(answer).toContain("/perguntar BSB GRU 20/07/2026");
+
+    const userMessage = mockCompleteChat.mock.calls[0][0][1].content.replace(/\s/g, " ");
+    expect(userMessage).toContain("Data da busca foi assumida automaticamente: sim");
   });
 
   it("usa RapidAPI quando Apify falha na busca ao vivo", async () => {
