@@ -58,7 +58,7 @@ async function handleDateRange(
   for (const date of dates) {
     const flights = await searchOneDate(origin, destination, date);
     if (flights.length > 0) {
-      const best = flights.sort((a, b) => a.priceBRL - b.priceBRL)[0];
+      const best = [...flights].sort((a, b) => a.priceBRL - b.priceBRL)[0];
       results.push({ date, priceBRL: best.priceBRL, airline: best.airline });
     }
   }
@@ -116,7 +116,7 @@ export async function handleBuscar(chatId: number, args: string[]): Promise<void
       return;
     }
     depDate = parsed;
-  } else if (args.length >= 4) {
+  } else if (args.length === 4) {
     origin = args[0].toUpperCase();
     dest = args[1].toUpperCase();
     const startDate = parseBROrISODate(args[2]);
@@ -126,6 +126,9 @@ export async function handleBuscar(chatId: number, args: string[]): Promise<void
       return;
     }
     await handleDateRange(chatId, origin, dest, startDate, endDate);
+    return;
+  } else {
+    await sendReply(chatId, "❌ Muitos argumentos.\nUse: `/buscar ORIGEM DESTINO DATA_INICIO DATA_FIM`");
     return;
   }
 
