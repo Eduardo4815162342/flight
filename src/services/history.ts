@@ -162,39 +162,74 @@ export async function getFullHistory(): Promise<HistoryEntry[]> {
 /**
  * Retorna o histórico de preços de uma rota no formato [timestamp_unix_segundos, preço_BRL][].
  * Compatível com calcTrend() e bestDayOfWeek() de priceHistory.ts.
+ * Se departureDate for fornecido, filtra apenas registros para aquela data de partida.
  */
 export async function getRoutePriceHistory(
   origin: string,
-  destination: string
+  destination: string,
+  departureDate?: string
 ): Promise<[number, number][]> {
   const db = getDb();
-  const result = await db.execute({
-    sql: `SELECT timestamp, cheapestPriceBRL FROM history
-          WHERE origin = ? AND destination = ? AND cheapestPriceBRL IS NOT NULL
-          ORDER BY timestamp ASC`,
-    args: [origin, destination],
-  });
-
+  const sql = departureDate
+    ? `SELECT timestamp, cheapestPriceBRL FROM history
+       WHERE origin = ? AND destination = ? AND departureDate = ?
+         AND cheapestPriceBRL IS NOT NULL
+       ORDER BY timestamp ASC`
+    : `SELECT timestamp, cheapestPriceBRL FROM history
+       WHERE origin = ? AND destination = ?
+         AND cheapestPriceBRL IS NOT NULL
+       ORDER BY timestamp ASC`;
+  const args = departureDate
+    ? [origin, destination, departureDate]
+    : [origin, destination];
+  const result = await db.execute({ sql, args });
   return result.rows.map((row) => [
     Math.floor(new Date(row.timestamp as string).getTime() / 1000),
     Number(row.cheapestPriceBRL),
   ]);
 }
 
-/** Retorna o menor preço já registrado para uma rota */
+/** Retorna o menor preço já registrado para uma rota, opcionalmente filtrado por data de partida */
 export async function getRouteLowestPrice(
   origin: string,
-  destination: string
+  destination: string,
+  departureDate?: string
 ): Promise<number | null> {
   const db = getDb();
-  const result = await db.execute({
-    sql: `SELECT MIN(cheapestPriceBRL) as minPrice FROM history
-          WHERE origin = ? AND destination = ? AND cheapestPriceBRL IS NOT NULL`,
-    args: [origin, destination],
-  });
-
+  const sql = departureDate
+    ? `SELECT MIN(cheapestPriceBRL) as minPrice FROM history
+       WHERE origin = ? AND destination = ? AND departureDate = ?
+         AND cheapestPriceBRL IS NOT NULL`
+    : `SELECT MIN(cheapestPriceBRL) as minPrice FROM history
+       WHERE origin = ? AND destination = ?
+         AND cheapestPriceBRL IS NOT NULL`;
+  const args = departureDate
+    ? [origin, destination, departureDate]
+    : [origin, destination];
+  const result = await db.execute({ sql, args });
   const row = result.rows[0];
   return row?.minPrice !== null && row?.minPrice !== undefined ? Number(row.minPrice) : null;
+}
+
+/**
+ * Retorna a data de partida mais recente com registros para uma rota.
+ * Útil como fallback quando o usuário não especifica data no /tendencia.
+ */
+export async function getLatestDepartureDate(
+  origin: string,
+  destination: string
+): Promise<string | null> {
+  const db = getDb();
+  const result = await db.execute({
+    sql: `SELECT departureDate FROM history
+          WHERE origin = ? AND destination = ?
+            AND cheapestPriceBRL IS NOT NULL
+          ORDER BY departureDate DESC
+          LIMIT 1`,
+    args: [origin, destination],
+  });
+  const row = result.rows[0];
+  return row ? String(row.departureDate) : null;
 }
 
 function rowToEntry(row: any): HistoryEntry {

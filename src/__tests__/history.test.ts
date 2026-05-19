@@ -46,4 +46,34 @@ describe("History Service (Turso Async)", () => {
       expect(summaries).toEqual([]);
     });
   });
+
+  describe("getRoutePriceHistory", () => {
+    it("retorna array vazio quando o banco está vazio", async () => {
+      const { getRoutePriceHistory } = await import("../services/history");
+      const result = await getRoutePriceHistory("BSB", "GRU");
+      expect(result).toEqual([]);
+    });
+
+    it("aceita filtro opcional de departureDate", async () => {
+      const { getRoutePriceHistory } = await import("../services/history");
+      const result = await getRoutePriceHistory("BSB", "GRU", "2026-07-20");
+      expect(Array.isArray(result)).toBe(true);
+    });
+  });
+
+  describe("getLatestDepartureDate", () => {
+    it("retorna null quando o banco está vazio", async () => {
+      const { getLatestDepartureDate } = await import("../services/history");
+      const result = await getLatestDepartureDate("BSB", "GRU");
+      expect(result).toBeNull();
+    });
+  });
+
+  describe("getRouteLowestPrice with departureDate", () => {
+    it("aceita filtro opcional de departureDate", async () => {
+      const { getRouteLowestPrice } = await import("../services/history");
+      const result = await getRouteLowestPrice("BSB", "GRU", "2026-07-20");
+      expect(result).toBeNull();
+    });
+  });
 });

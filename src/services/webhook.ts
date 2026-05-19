@@ -4,7 +4,7 @@ import { config } from "../config";
 import { formatBRL } from "./currency";
 import * as userService from "./user";
 import { getDb } from "./db";
-import { getRoutePriceHistory, getRouteLowestPrice } from "./history";
+import { getRoutePriceHistory, getRouteLowestPrice, getLatestDepartureDate } from "./history";
 import { calcTrend, bestDayOfWeek } from "../utils/priceHistory";
 import { answerTravelQuestion } from "./aiConcierge";
 import { canAskAI, recordAIQuery } from "./aiUsage";
@@ -451,7 +451,7 @@ async function handleEditarAlerta(chatId: string, args: string[]): Promise<void>
 
 async function handleTendencia(chatId: string, args: string[]): Promise<void> {
   if (args.length < 2) {
-    await sendReply(chatId, "❌ Formato: `/tendencia ORIGEM DESTINO`\nEx: `/tendencia BSB GRU`");
+    await sendReply(chatId, "❌ Formato: `/tendencia ORIGEM DESTINO [DATA]`\nEx: `/tendencia BSB GRU 20/07/2026`");
     return;
   }
 
@@ -459,25 +459,49 @@ async function handleTendencia(chatId: string, args: string[]): Promise<void> {
   const destination = args[1].toUpperCase();
   const route = `${origin} → ${destination}`;
 
+  // Parse optional departure date (3rd arg)
+  let departureDate: string | undefined;
+  if (args[2]) {
+    const raw = args[2];
+    const normalized = raw.includes("/") ? raw.split("/").reverse().join("-") : raw;
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(normalized);
+    if (!match) {
+      await sendReply(chatId, "❌ Data inválida. Use `DD/MM/AAAA` ou `AAAA-MM-DD`.");
+      return;
+    }
+    departureDate = normalized;
+  }
+
   await sendReply(chatId, `🔍 Analisando tendência de *${route}*...`);
 
-  const priceData = await getRoutePriceHistory(origin, destination);
+  // If no date given, default to the most recently tracked departure date for this route
+  if (!departureDate) {
+    departureDate = (await getLatestDepartureDate(origin, destination)) ?? undefined;
+  }
+
+  const priceData = await getRoutePriceHistory(origin, destination, departureDate);
 
   if (priceData.length < 2) {
-    await sendReply(chatId, `📊 *${route}*\n\nSem dados suficientes para análise de tendência.\nO tracker precisa de pelo menos 2 registros para essa rota.`);
+    const hint = departureDate
+      ? `para a data *${departureDate}*`
+      : "para essa rota";
+    await sendReply(
+      chatId,
+      `📊 *${route}*\n\nSem dados suficientes ${hint}.\n` +
+      `O tracker precisa de pelo menos 2 registros.\n` +
+      `Tente: \`/tendencia BSB GRU 20/07/2026\``
+    );
     return;
   }
 
   const trend = calcTrend(priceData, 7);
   const bestDay = bestDayOfWeek(priceData);
-  const lowestEver = await getRouteLowestPrice(origin, destination);
-
-  // Preço mais recente
+  const lowestEver = await getRouteLowestPrice(origin, destination, departureDate);
   const latestPrice = priceData[priceData.length - 1][1];
+  const dateLabel = departureDate ? ` — data ${departureDate}` : "";
 
-  const lines = [`📈 *Tendência ${route}* (últimos 7 dias)`, ""];
+  const lines = [`📈 *Tendência ${route}*${dateLabel} (últimos 7 dias)`, ""];
 
-  // Direção da tendência
   if (trend) {
     const emoji = trend.direction === "down" ? "📉" : trend.direction === "up" ? "📈" : "➡️";
     const label = trend.direction === "down"
@@ -490,28 +514,25 @@ async function handleTendencia(chatId: string, args: string[]): Promise<void> {
     lines.push(`📊 Direção: ➡️ Sem dados suficientes na última semana`);
   }
 
-  // Preço atual e menor histórico
   lines.push(`💰 Último preço: *${formatBRL(latestPrice)}*`);
   if (lowestEver !== null) {
     lines.push(`🏆 Menor preço já registrado: *${formatBRL(lowestEver)}*`);
   }
 
-  // Melhor dia da semana
   if (bestDay) {
     lines.push(`📅 Melhor dia para comprar: *${bestDay.dayName}* (média ${formatBRL(bestDay.avgPrice)})`);
   }
 
-  // Insight
   lines.push("");
   if (trend) {
     if (trend.direction === "down" && trend.pct <= -5) {
-      lines.push(`🔮 _Preços estão em queda significativa. Pode ser boa hora de comprar!_`);
+      lines.push(`🔮 _Preços em queda significativa. Pode ser boa hora de comprar!_`);
     } else if (trend.direction === "down") {
-      lines.push(`🔮 _Leve tendência de queda. Vale acompanhar nos próximos dias._`);
+      lines.push(`🔮 _Leve tendência de queda. Vale acompanhar._`);
     } else if (trend.direction === "up" && trend.pct >= 10) {
       lines.push(`🔮 _Preços subindo forte. Considere comprar logo ou esperar uma correção._`);
     } else if (trend.direction === "up") {
-      lines.push(`🔮 _Preços em leve alta. Fique atento a oportunidades._`);
+      lines.push(`🔮 _Preços em leve alta. Fique atento._`);
     } else {
       lines.push(`🔮 _Preços estáveis. Bom momento para monitorar._`);
     }
@@ -519,8 +540,7 @@ async function handleTendencia(chatId: string, args: string[]): Promise<void> {
     lines.push(`🔮 _Continue monitorando — mais dados gerarão insights melhores._`);
   }
 
-  lines.push("", `_Baseado em ${priceData.length} registro(s) no histórico._`);
-
+  lines.push("", `_Baseado em ${priceData.length} registro(s)._`);
   await sendReply(chatId, lines.join("\n"));
 }
 

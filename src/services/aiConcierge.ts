@@ -164,13 +164,13 @@ async function fetchLiveRoutePrice(
   return { searchDate, usedDefaultDate, totalFound: flights.length, bestFlight };
 }
 
-async function buildRouteStats(route: Route, nowMs = Date.now()): Promise<RouteStats | null> {
-  const history = await getRoutePriceHistory(route.origin, route.destination);
+async function buildRouteStats(route: Route, departureDate?: string, nowMs = Date.now()): Promise<RouteStats | null> {
+  const history = await getRoutePriceHistory(route.origin, route.destination, departureDate);
   if (history.length < 2) return null;
 
   const sorted = [...history].sort((a, b) => a[0] - b[0]);
   const latestPrice = sorted[sorted.length - 1][1];
-  const lowestEver = await getRouteLowestPrice(route.origin, route.destination);
+  const lowestEver = await getRouteLowestPrice(route.origin, route.destination, departureDate);
   const prices30d = pricesInLastDays(sorted, 30, nowMs);
   const average30d = average(prices30d);
   const min30d = prices30d.length > 0 ? Math.min(...prices30d) : null;
@@ -332,8 +332,10 @@ export async function answerTravelQuestion(question: string): Promise<string> {
     return "❌ Não consegui identificar a rota.\n\nTente assim:\n`/perguntar BSB GRU vale a pena comprar agora?`";
   }
 
+  const parsedDate = parseQuestionDate(question) ?? undefined;
+
   const live = await fetchLiveRoutePrice(route, question);
-  const stats = await buildRouteStats(route);
+  const stats = await buildRouteStats(route, parsedDate);
   if (!stats && !live) {
     return `📊 Ainda não tenho dados suficientes para *${route.origin} → ${route.destination}* e não consegui obter preço ao vivo agora.\n\nVocê pode criar um alerta para essa rota e perguntar de novo depois.`;
   }

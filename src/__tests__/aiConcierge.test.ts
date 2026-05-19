@@ -81,8 +81,8 @@ describe("aiConcierge", () => {
     const answer = await answerTravelQuestion("Vale a pena comprar BSB->GRU agora?");
 
     expect(answer).toBe("Resposta contextual da IA");
-    expect(mockGetRoutePriceHistory).toHaveBeenCalledWith("BSB", "GRU");
-    expect(mockGetRouteLowestPrice).toHaveBeenCalledWith("BSB", "GRU");
+    expect(mockGetRoutePriceHistory).toHaveBeenCalledWith("BSB", "GRU", undefined);
+    expect(mockGetRouteLowestPrice).toHaveBeenCalledWith("BSB", "GRU", undefined);
     expect(mockCompleteChat).toHaveBeenCalledWith(
       expect.arrayContaining([
         expect.objectContaining({
