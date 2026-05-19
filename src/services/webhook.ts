@@ -159,7 +159,7 @@ async function handleStart(chatId: string, firstName?: string, username?: string
 
   // Já autorizado
   if (existingUser?.is_authorized === 1) {
-    await sendReply(chatId, `👋 Olá ${firstName}! Você está autorizado.\n\nComandos:\n/alerta - Monitorar passagens\n/perguntar - Concierge de IA com histórico real\n/meusalertas - Gerenciar alertas\n/assinatura - Ver seu acesso\n/noticias - Ligar/desligar ofertas`);
+    await sendReply(chatId, `👋 Olá ${firstName}! Você está autorizado.\n\nComandos:\n/alerta - Monitorar passagens\n/perguntar - Concierge de IA com histórico real\n/meusalertas - Gerenciar alertas\n/assinatura - Ver seu acesso\n/noticias - Ligar/desligar ofertas\n/cpm - Calcular centavo por milha (CPM)`);
     return;
   }
 
@@ -576,6 +576,80 @@ async function handlePerguntar(chatId: string, args: string[]): Promise<void> {
   }
 }
 
+async function handleCPM(chatId: string, args: string[]): Promise<void> {
+  if (args.length < 3) {
+    await sendReply(
+      chatId,
+      "❌ Formato: `/cpm ORIGEM DESTINO MILHAS [PRECO_CASH]`\n\n" +
+      "Exemplos:\n" +
+      "`/cpm BSB GRU 18000` — busca preço ao vivo e calcula CPM\n" +
+      "`/cpm BSB GRU 18000 350` — calcula CPM com preço informado"
+    );
+    return;
+  }
+
+  const origin = args[0].toUpperCase();
+  const destination = args[1].toUpperCase();
+  const miles = parseInt(args[2].replace(/[^\d]/g, ""), 10);
+
+  if (isNaN(miles) || miles <= 0) {
+    await sendReply(chatId, "❌ Quantidade de milhas inválida.");
+    return;
+  }
+
+  let cashBRL: number;
+
+  if (args[3]) {
+    const parsed = parseFloat(args[3].replace(/[^\d.,]/g, "").replace(",", "."));
+    if (isNaN(parsed) || parsed <= 0) {
+      await sendReply(chatId, "❌ Preço cash inválido.");
+      return;
+    }
+    cashBRL = parsed;
+  } else {
+    await sendReply(chatId, `🔍 Buscando preço ao vivo para *${origin} → ${destination}*...`);
+    const { searchWithApify } = await import("../apis/apify");
+    const { searchWithRapidAPI } = await import("../apis/rapidapi");
+    const searchDate = (() => {
+      const d = new Date();
+      d.setUTCDate(d.getUTCDate() + 30);
+      return d.toISOString().split("T")[0];
+    })();
+    const params = {
+      origin,
+      destination,
+      departureDate: searchDate,
+      tripType: "one-way" as const,
+      ignoreMaxPrice: true,
+    };
+    let flights;
+    try {
+      flights = await searchWithApify(params);
+    } catch {
+      try {
+        flights = await searchWithRapidAPI(params);
+      } catch {
+        await sendReply(chatId, "❌ Não consegui obter o preço ao vivo. Informe o preço cash manualmente:\n`/cpm BSB GRU 18000 350`");
+        return;
+      }
+    }
+    if (!flights || flights.length === 0) {
+      await sendReply(chatId, "❌ Nenhum voo encontrado. Informe o preço cash manualmente:\n`/cpm BSB GRU 18000 350`");
+      return;
+    }
+    cashBRL = Math.min(...flights.map(f => f.priceBRL));
+  }
+
+  const { calcCPM, buildCPMRecommendation } = await import("../utils/cpm");
+  const cpm = calcCPM(cashBRL, miles);
+  if (cpm === null) {
+    await sendReply(chatId, "❌ Dados inválidos para calcular CPM.");
+    return;
+  }
+
+  await sendReply(chatId, `📊 *CPM — ${origin} → ${destination}*\n\n` + buildCPMRecommendation(cashBRL, miles, cpm));
+}
+
 async function handleAssinatura(chatId: string): Promise<void> {
   const access = await getSubscriptionAccess(chatId);
   await sendReply(
@@ -697,6 +771,8 @@ export async function handleUpdate(update: TelegramUpdate): Promise<void> {
       await handleTendencia(chatId, args);
     } else if (cmd === "/perguntar") {
       await handlePerguntar(chatId, args);
+    } else if (cmd === "/cpm") {
+      await handleCPM(chatId, args);
     }
   } catch (err) {
     console.error(`[webhook] Erro no comando ${cmd}:`, err);
