@@ -19,7 +19,7 @@ export function getCached(
   const key = buildCacheKey(origin, destination, date);
   const entry = cache.get(key);
   if (!entry) return null;
-  if (Date.now() > entry.expiresAt) {
+  if (Date.now() >= entry.expiresAt) {
     cache.delete(key);
     return null;
   }

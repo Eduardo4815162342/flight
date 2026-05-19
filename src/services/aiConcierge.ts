@@ -124,7 +124,7 @@ async function fetchLiveRoutePrice(
 
   const cached = getCached(route.origin, route.destination, searchDate);
   if (cached) {
-    console.log(`[aiConcierge] Cache hit para ${route.origin}→${route.destination} ${searchDate}`);
+    console.debug(`[aiConcierge] Cache hit para ${route.origin}→${route.destination} ${searchDate}`);
     return cached;
   }
 

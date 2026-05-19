@@ -31,6 +31,8 @@ describe("buildCacheKey", () => {
 });
 
 describe("getCached / setCached", () => {
+  afterEach(() => jest.restoreAllMocks());
+
   it("retorna null quando não há entrada no cache", () => {
     expect(getCached("BSB", "GRU", "2026-07-20")).toBeNull();
   });
@@ -41,8 +43,13 @@ describe("getCached / setCached", () => {
   });
 
   it("retorna null quando entrada expirou", () => {
-    setCached("BSB", "FOR", "2026-07-20", fakeResult, -1);
+    const now = 1_000_000;
+    jest.spyOn(Date, "now").mockReturnValue(now);
+    setCached("BSB", "FOR", "2026-07-20", fakeResult, 0); // expiresAt = now + 0 = now
+    // advance time by 1ms so Date.now() >= expiresAt
+    jest.spyOn(Date, "now").mockReturnValue(now + 1);
     expect(getCached("BSB", "FOR", "2026-07-20")).toBeNull();
+    jest.restoreAllMocks();
   });
 
   it("diferentes rotas têm entradas independentes", () => {
