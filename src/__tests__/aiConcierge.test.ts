@@ -1,3 +1,5 @@
+import { clearCache } from "../utils/liveSearchCache";
+
 const mockGetRoutePriceHistory = jest.fn();
 const mockGetRouteLowestPrice = jest.fn();
 const mockAppendHistory = jest.fn();
@@ -30,6 +32,7 @@ function daysAgo(days: number, price: number): [number, number] {
 describe("aiConcierge", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    clearCache();
     mockAppendHistory.mockResolvedValue(undefined);
     mockSearchWithApify.mockResolvedValue([]);
     mockSearchWithRapidAPI.mockResolvedValue([]);

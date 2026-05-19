@@ -5,6 +5,7 @@ import { appendHistory, getRouteLowestPrice, getRoutePriceHistory } from "./hist
 import { completeChat } from "./openrouter";
 import { formatBRL, getUSDtoBRL } from "./currency";
 import { bestDayOfWeek, calcTrend, TrendResult, BestDayResult } from "../utils/priceHistory";
+import { getCached, setCached } from "../utils/liveSearchCache";
 
 interface Route {
   origin: string;
@@ -24,7 +25,7 @@ interface RouteStats {
   bestDay: BestDayResult | null;
 }
 
-interface LiveSearchResult {
+export interface LiveSearchResult {
   searchDate: string;
   usedDefaultDate: boolean;
   totalFound: number;
@@ -120,6 +121,13 @@ async function fetchLiveRoutePrice(
 ): Promise<LiveSearchResult | null> {
   const searchDate = parsedDate ?? defaultSearchDate();
   const usedDefaultDate = parsedDate == null;
+
+  const cached = getCached(route.origin, route.destination, searchDate);
+  if (cached) {
+    console.log(`[aiConcierge] Cache hit para ${route.origin}→${route.destination} ${searchDate}`);
+    return cached;
+  }
+
   const params: SearchParams = {
     origin: route.origin,
     destination: route.destination,
@@ -161,7 +169,9 @@ async function fetchLiveRoutePrice(
     })),
   });
 
-  return { searchDate, usedDefaultDate, totalFound: flights.length, bestFlight };
+  const result: LiveSearchResult = { searchDate, usedDefaultDate, totalFound: flights.length, bestFlight };
+  setCached(route.origin, route.destination, searchDate, result);
+  return result;
 }
 
 async function buildRouteStats(route: Route, departureDate?: string, nowMs = Date.now()): Promise<RouteStats | null> {
