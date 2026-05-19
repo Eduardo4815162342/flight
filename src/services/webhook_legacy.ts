@@ -48,9 +48,16 @@ async function handleDateRange(
     return;
   }
 
+  const requestedDays = Math.round(
+    (new Date(`${endDate}T00:00:00Z`).getTime() - new Date(`${startDate}T00:00:00Z`).getTime()) / (24 * 60 * 60 * 1000)
+  ) + 1;
+  const truncated = requestedDays > dates.length;
+
   await sendReply(
     chatId,
-    `🔍 Buscando *${dates.length} dia(s)*...\n🛫 ${origin} → ${destination}\n📅 ${startDate} até ${endDate}\n\nAguarde, isso pode levar alguns segundos...`
+    `🔍 Buscando *${dates.length} dia(s)*...\n🛫 ${origin} → ${destination}\n📅 ${startDate} até ${endDate}` +
+    (truncated ? `\n⚠️ _Limitado aos primeiros ${dates.length} dias do período de ${requestedDays} dias._` : "") +
+    `\n\nAguarde, isso pode levar alguns segundos...`
   );
 
   const results: { date: string; priceBRL: number; airline?: string }[] = [];

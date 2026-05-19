@@ -8,6 +8,10 @@ import { getRoutePriceHistory, getRouteLowestPrice, getLatestDepartureDate } fro
 import { calcTrend, bestDayOfWeek } from "../utils/priceHistory";
 import { answerTravelQuestion } from "./aiConcierge";
 import { canAskAI, recordAIQuery } from "./aiUsage";
+import { getCached, setCached } from "../utils/liveSearchCache";
+import { calcCPM, buildCPMRecommendation } from "../utils/cpm";
+import { searchWithApify } from "../apis/apify";
+import { searchWithRapidAPI } from "../apis/rapidapi";
 import {
   activateSubscription,
   cancelSubscription,
@@ -597,7 +601,14 @@ async function handleCPM(chatId: string, args: string[]): Promise<void> {
     return;
   }
 
+  const searchDate = (() => {
+    const d = new Date();
+    d.setUTCDate(d.getUTCDate() + 30);
+    return d.toISOString().split("T")[0];
+  })();
+
   let cashBRL: number;
+  let usedLiveSearch = false;
 
   if (args[3]) {
     const parsed = parseFloat(args[3].replace(/[^\d.,]/g, "").replace(",", "."));
@@ -607,47 +618,58 @@ async function handleCPM(chatId: string, args: string[]): Promise<void> {
     }
     cashBRL = parsed;
   } else {
-    await sendReply(chatId, `🔍 Buscando preço ao vivo para *${origin} → ${destination}*...`);
-    const { searchWithApify } = await import("../apis/apify");
-    const { searchWithRapidAPI } = await import("../apis/rapidapi");
-    const searchDate = (() => {
-      const d = new Date();
-      d.setUTCDate(d.getUTCDate() + 30);
-      return d.toISOString().split("T")[0];
-    })();
-    const params = {
-      origin,
-      destination,
-      departureDate: searchDate,
-      tripType: "one-way" as const,
-      ignoreMaxPrice: true,
-    };
-    let flights;
-    try {
-      flights = await searchWithApify(params);
-    } catch {
+    // Check cache first (shared with /perguntar)
+    const cached = getCached(origin, destination, searchDate);
+    if (cached) {
+      cashBRL = cached.bestFlight.priceBRL;
+      usedLiveSearch = true;
+    } else {
+      await sendReply(chatId, `🔍 Buscando preço ao vivo para *${origin} → ${destination}*...`);
+      const params = {
+        origin,
+        destination,
+        departureDate: searchDate,
+        tripType: "one-way" as const,
+        ignoreMaxPrice: true,
+      };
+      let flights;
       try {
-        flights = await searchWithRapidAPI(params);
+        flights = await searchWithApify(params);
       } catch {
-        await sendReply(chatId, "❌ Não consegui obter o preço ao vivo. Informe o preço cash manualmente:\n`/cpm BSB GRU 18000 350`");
+        try {
+          flights = await searchWithRapidAPI(params);
+        } catch {
+          await sendReply(chatId, "❌ Não consegui obter o preço ao vivo. Informe o preço cash manualmente:\n`/cpm BSB GRU 18000 350`");
+          return;
+        }
+      }
+      if (!flights || flights.length === 0) {
+        await sendReply(chatId, "❌ Nenhum voo encontrado. Informe o preço cash manualmente:\n`/cpm BSB GRU 18000 350`");
         return;
       }
+      cashBRL = Math.min(...flights.map(f => f.priceBRL));
+      // Store in cache so subsequent /perguntar for same route uses this result
+      const bestFlight = [...flights].sort((a, b) => a.priceBRL - b.priceBRL)[0];
+      setCached(origin, destination, searchDate, {
+        searchDate,
+        usedDefaultDate: true,
+        totalFound: flights.length,
+        bestFlight,
+      });
+      usedLiveSearch = true;
     }
-    if (!flights || flights.length === 0) {
-      await sendReply(chatId, "❌ Nenhum voo encontrado. Informe o preço cash manualmente:\n`/cpm BSB GRU 18000 350`");
-      return;
-    }
-    cashBRL = Math.min(...flights.map(f => f.priceBRL));
   }
 
-  const { calcCPM, buildCPMRecommendation } = await import("../utils/cpm");
   const cpm = calcCPM(cashBRL, miles);
   if (cpm === null) {
     await sendReply(chatId, "❌ Dados inválidos para calcular CPM.");
     return;
   }
 
-  await sendReply(chatId, `📊 *CPM — ${origin} → ${destination}*\n\n` + buildCPMRecommendation(cashBRL, miles, cpm));
+  const dateNote = usedLiveSearch
+    ? `_Preço cash: menor tarifa encontrada para ${searchDate} (data estimada)._\n\n`
+    : "";
+  await sendReply(chatId, `${dateNote}📊 *CPM — ${origin} → ${destination}*\n\n` + buildCPMRecommendation(cashBRL, miles, cpm));
 }
 
 async function handleAssinatura(chatId: string): Promise<void> {

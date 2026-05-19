@@ -12,7 +12,17 @@ jest.mock("../config", () => ({
   config: {
     telegram: { botToken: "test-token", chatId: "123456789" },
     search:   { origin: "BSB" },
+    rapidapi: { key: "test-rapidapi-key", host: "test-host" },
+    apify:    { tokens: ["test-apify-token"] },
   },
+}));
+
+jest.mock("../apis/apify", () => ({
+  searchWithApify: jest.fn(),
+}));
+
+jest.mock("../apis/rapidapi", () => ({
+  searchWithRapidAPI: jest.fn(),
 }));
 
 jest.mock("../services/user", () => ({
