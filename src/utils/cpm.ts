@@ -23,8 +23,8 @@ export function buildCPMRecommendation(
 ): string {
   const classification = classifyCPM(cpm);
   const formattedCPM = formatCPM(cpm);
-  const formattedCash = `R$ ${cashBRL.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
-  const formattedMiles = miles.toLocaleString("pt-BR");
+  const formattedCash = `R$ ${cashBRL.toFixed(2).replace(".", ",")}`;
+  const formattedMiles = miles.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
   const lines: string[] = [
     `💳 Cash: *${formattedCash}*`,

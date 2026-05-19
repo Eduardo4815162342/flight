@@ -56,4 +56,16 @@ describe("buildCPMRecommendation", () => {
     expect(result).toContain("cash");
     expect(result).toContain("ruim");
   });
+
+  it("menciona bom quando CPM é bom", () => {
+    const result = buildCPMRecommendation(400, 22000, 2.0);
+    expect(result).toContain("milhas");
+    expect(result).toContain("bom");
+  });
+
+  it("menciona indiferente quando CPM é regular", () => {
+    const result = buildCPMRecommendation(400, 14000, 3.0);
+    expect(result).toContain("indiferente");
+    expect(result).toContain("regular");
+  });
 });
