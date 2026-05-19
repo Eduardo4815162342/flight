@@ -220,13 +220,17 @@ export async function getLatestDepartureDate(
   destination: string
 ): Promise<string | null> {
   const db = getDb();
+  const today = new Date().toISOString().split("T")[0];
+  // Returns the furthest-future non-expired departure date tracked for this route.
+  // Used as fallback when /tendencia is called without an explicit date.
   const result = await db.execute({
     sql: `SELECT departureDate FROM history
           WHERE origin = ? AND destination = ?
             AND cheapestPriceBRL IS NOT NULL
+            AND departureDate >= ?
           ORDER BY departureDate DESC
           LIMIT 1`,
-    args: [origin, destination],
+    args: [origin, destination, today],
   });
   const row = result.rows[0];
   return row ? String(row.departureDate) : null;

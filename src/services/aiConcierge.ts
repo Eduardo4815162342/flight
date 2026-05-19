@@ -115,11 +115,11 @@ function defaultSearchDate(nowMs = Date.now()): string {
 
 async function fetchLiveRoutePrice(
   route: Route,
-  question: string
+  question: string,
+  parsedDate?: string | null
 ): Promise<LiveSearchResult | null> {
-  const parsedDate = parseQuestionDate(question);
   const searchDate = parsedDate ?? defaultSearchDate();
-  const usedDefaultDate = parsedDate === null;
+  const usedDefaultDate = parsedDate == null;
   const params: SearchParams = {
     origin: route.origin,
     destination: route.destination,
@@ -332,10 +332,10 @@ export async function answerTravelQuestion(question: string): Promise<string> {
     return "❌ Não consegui identificar a rota.\n\nTente assim:\n`/perguntar BSB GRU vale a pena comprar agora?`";
   }
 
-  const parsedDate = parseQuestionDate(question) ?? undefined;
+  const parsedDate = parseQuestionDate(question);
 
-  const live = await fetchLiveRoutePrice(route, question);
-  const stats = await buildRouteStats(route, parsedDate);
+  const live = await fetchLiveRoutePrice(route, question, parsedDate);
+  const stats = await buildRouteStats(route, parsedDate ?? undefined);
   if (!stats && !live) {
     return `📊 Ainda não tenho dados suficientes para *${route.origin} → ${route.destination}* e não consegui obter preço ao vivo agora.\n\nVocê pode criar um alerta para essa rota e perguntar de novo depois.`;
   }

@@ -489,7 +489,7 @@ async function handleTendencia(chatId: string, args: string[]): Promise<void> {
       chatId,
       `📊 *${route}*\n\nSem dados suficientes ${hint}.\n` +
       `O tracker precisa de pelo menos 2 registros.\n` +
-      `Tente: \`/tendencia BSB GRU 20/07/2026\``
+      `Tente: \`/tendencia ${origin} ${destination} 20/07/2026\``
     );
     return;
   }
@@ -498,7 +498,9 @@ async function handleTendencia(chatId: string, args: string[]): Promise<void> {
   const bestDay = bestDayOfWeek(priceData);
   const lowestEver = await getRouteLowestPrice(origin, destination, departureDate);
   const latestPrice = priceData[priceData.length - 1][1];
-  const dateLabel = departureDate ? ` — data ${departureDate}` : "";
+  const dateLabel = departureDate
+    ? ` — data ${departureDate.split("-").reverse().join("/")}`
+    : "";
 
   const lines = [`📈 *Tendência ${route}*${dateLabel} (últimos 7 dias)`, ""];
 
