@@ -21,6 +21,10 @@ Monitora passagens aéreas saindo de Brasília (BSB) e envia alertas no Telegram
 - 🏷️ **Ofertas do Dia** — busca ofertas de passagens e pacotes no feed "Quero Viajar na Faixa"
 - 💚 **Health check diário** — envia uma mensagem no Telegram confirmando que o tracker rodou
 - 🔒 **Webhook seguro** — comandos aceitos apenas do `TELEGRAM_CHAT_ID` autorizado
+- 📊 **Gráficos Inline no Telegram** — O comando `/tendencia` gera e envia imagens interativas de linhas via QuickChart.io mapeando o histórico dos últimos 30 dias de preços.
+- 🚨 **Detector de Erro de Tarifa (Glitch)** — Interceptador estatístico para quedas de preços extremas, contornando tetos configurados para não perder passagens promocionais e bugs.
+- 🎨 **SaaS Dashboard (Google Blog Style)** — Painel web moderno, responsivo e baseado nas diretrizes visuais do *Google Keyword Blog* (Material Design 3) com suporte a tema Claro e Escuro persistente.
+- 🔒 **Autenticação HMAC Telegram & Cookies** — Validação criptográfica HMAC-SHA256 direta das credenciais assinadas pelo Telegram e segurança de sessão por cookies `HttpOnly`/`SameSite`.
 - 🧪 **Testes com cobertura** — CI bloqueia PRs com cobertura abaixo de 80%
 
 ---
@@ -309,6 +313,11 @@ O projeto conta com um servidor de webhook para responder a comandos diretamente
 - `/buscar [DESTINO]` — Realiza uma busca em tempo real para o destino informado (ex: `/buscar GRU`).
 - `/historico [DESTINO]` — Mostra as últimas 5 buscas realizadas para aquele destino, permitindo acompanhar a evolução do preço.
 - `/status` — Exibe o status atual do tracker, incluindo origem, destinos monitorados e threshold de preço.
+- `/tendencia ORIGEM DESTINO [DATA]` — Realiza uma análise estatística avançada e plota a evolução de preços dos últimos 30 registros da rota como um gráfico de linhas em formato Slate-800 Premium via **QuickChart.io**. A resposta é entregue em um balão integrado (gráfico + legenda) contendo:
+  - **Direção e Variação**: Determina estatisticamente se a tendência é de alta, queda ou estabilidade nos últimos 7 dias.
+  - **Preços Extremos**: Mostra o menor preço já capturado no histórico e o último preço monitorado.
+  - **Dia Ideal de Compra**: Identifica o dia da semana estatisticamente mais barato para a rota com base na média aritmética histórica.
+  - **Mecanismo de Resiliência**: Caso a API do QuickChart falhe ou estoure o timeout, o bot automaticamente faz fallback dinâmico para uma notificação baseada em texto.
 
 ### Como rodar o Bot
 
@@ -340,6 +349,57 @@ PRICE_DROP_THRESHOLD=0.95   # alerta se cair ≥ 5% (padrão)
 PRICE_DROP_THRESHOLD=0.90   # alerta só se cair ≥ 10%
 PRICE_DROP_THRESHOLD=1.00   # sempre alerta (sem filtro)
 ```
+
+---
+
+## SaaS Web Dashboard & API REST
+
+O projeto integra uma plataforma web completa baseada no design do *Google Blog (The Keyword)* (Material Design 3) alimentada por um microsserviço REST API nativo em Node.js.
+
+### Arquitetura de Servidor Web Nativo
+- **Zero-Dependency**: O servidor HTTP é implementado nativamente utilizando o módulo integrado `node:http`. Sem Express, Fastify ou dependências externas, garantindo tempos de inicialização nulos e altíssima eficiência de recursos em execuções serverless ou em containers leves.
+- **Persistência Integrada**: Integração direta com o driver síncrono/assíncrono nativo `node:sqlite` para operações transacionais extremamente rápidas na leitura do histórico e configuração de alertas.
+
+### Segurança e Autenticação Criptográfica
+- **Autenticação HMAC Telegram**: O fluxo de login é integrado com o widget oficial do Telegram. A autenticação das credenciais fornecidas no frontend (`id`, `first_name`, `username`, `auth_date`, `hash`) é checada no backend calculando o HMAC-SHA256 dos parâmetros ordenados alfabeticamente usando a chave derivada do `TELEGRAM_BOT_TOKEN` via hash SHA-256.
+- **Tokens de Sessão Stateless (Sem Estado)**: Em vez de armazenar sessões em banco de dados, o servidor emite tokens autossuficientes e criptograficamente assinados. O token contém `id:firstName:username:timestamp` e uma assinatura HMAC-SHA256 baseada no `TELEGRAM_BOT_TOKEN`.
+- **Cookies de Sessão Seguros**: O token é injetado via cabeçalho `Set-Cookie` com diretivas de restrição rigorosas: `HttpOnly` (impede interceptação por scripts e ataques XSS), `SameSite=Lax` (protege contra CSRF) e validade padrão de 30 dias.
+
+### Endpoints da API REST
+O backend mapeia rotas HTTP nativas baseadas no token de sessão recuperado dos cookies do cabeçalho da requisição:
+- `GET /` — Serve a Landing Page interativa.
+- `GET /dashboard` — Renderiza a página administrativa de controle de alertas do usuário autenticado.
+- `GET /api/stats` — Agrega estatísticas gerais diretamente do SQLite (`total_searches`, `cheapest_flight_ever`, `active_routes`).
+- `GET /api/history` — Retorna o histórico serializado de preços da rota filtrada para preenchimento de gráficos locais.
+- `GET /api/alerts` — Lista todas as regras de monitoramento registradas para o usuário logado (com base no Telegram Chat ID extraído da sessão).
+- `POST /api/alerts` — Cria um novo gatilho de monitoramento (`origin`, `destination`, `max_price_brl`, `departure_date`, `return_date`).
+- `POST /api/alerts/update` — Atualiza os parâmetros (ex: teto máximo de preço) de um monitoramento ativo.
+- `DELETE /api/alerts` — Exclui definitivamente um monitoramento cadastrado.
+- `GET /api/auth/telegram` — Callback para validação criptográfica do widget de autenticação do Telegram.
+- `GET /api/auth/logout` — Limpa o cookie de sessão do navegador.
+
+### UI Google Blog Style (Material 3) & Reatividade
+- **CSS Avançado e Modular**: Layout inteiramente responsivo (Desktop/Mobile), com tipografia sofisticada importada via Google Fonts (Outfit & Inter), bordas suaves com blur (`backdrop-filter`), sombras elevadas e gradientes elegantes.
+- **Prevenção de Flash de Estilo (FOUC)**: Script de validação de preferência de cores (`dark` vs `light` theme) injetado diretamente no `<head>` usando dados do `localStorage`, garantindo carregamento instantâneo do tema apropriado com zero flashes indesejados de luz.
+- **Visualização Dinâmica com Chart.js**: Gráficos de linha do histórico renderizados de forma totalmente reativa. O tema do gráfico altera suas cores e paleta (eixos, linhas de grade translúcidas, tooltips e preenchimento de gradientes lineares) dinamicamente no cliente ao alternar o modo claro/escuro.
+
+---
+
+## Detector de Erro de Tarifa (Glitch Detector)
+
+O tracker incorpora um algoritmo estatístico para identificar anomalias extremas nos preços de passagens aéreas, comumente conhecidas como "tarifas bugadas" ou bugs de sistema de emissão.
+
+### Funcionamento do Algoritmo
+1. **Coleta de Amostras Específicas**: Para cada voo localizado, o sistema consulta no banco de dados SQLite o histórico para a rota exata na data de partida solicitada (`getRoutePriceHistory(origin, destination, departure_date)`).
+2. **Fallback por Amostragem Insuficiente**: O detector estatístico exige no mínimo $N \ge 3$ registros históricos para calcular a média. Se a data específica não contiver amostragem suficiente, o algoritmo automaticamente faz fallback para o histórico completo da rota (`getRoutePriceHistory(origin, destination)`).
+3. **Cálculo de Desvio e Disparo**: Se houver dados suficientes ($\ge 3$), calcula a média aritmética simples (`avgPrice`). Um "Glitch" de preço é disparado caso:
+   $$\text{Preço Atual BRL} \le \text{avgPrice} \times (1 - \text{PRICE\_ERROR\_THRESHOLD})$$
+   O threshold padrão `PRICE_ERROR_THRESHOLD` é regulado via variável de ambiente em `0.45` (indicando queda superior a 45% sobre a média histórica).
+
+### Mecanismo de Bypass de Regras (Priorização de Alerta)
+Quando uma passagem é catalogada como Glitch, as restrições padrão de envio de notificações são alteradas dinamicamente:
+- **Bypass de Teto de Preço**: O bot envia o alerta mesmo se o valor estiver acima do `max_price_brl` estipulado pelo usuário. Isso garante o monitoramento de passagens caras que normalmente estariam fora das configurações do usuário, mas que apresentaram descontos anômalos imperdíveis (ex: passagem de R$ 6.000,00 despencando para R$ 700,00).
+- **Controle Anti-Spam Exclusivo**: Para não spamar buscas subsequentes que ainda apresentem o preço sob efeito do erro, o alerta de Glitch só será disparado novamente se o preço for estritamente menor do que a última tarifa anomalógica registrada.
 
 ---
 

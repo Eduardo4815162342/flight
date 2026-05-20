@@ -21,6 +21,10 @@ Monitors airfare departing from Brasília (BSB) and sends Telegram alerts when p
 - 🏷️ **Daily Offers** — Searches for flight and travel deals in the "Quero Viajar na Faixa" feed.
 - 💚 **Daily Health Check** — Sends a Telegram message confirming the tracker ran successfully.
 - 🔒 **Secure Webhook** — Commands accepted only from the authorized `TELEGRAM_CHAT_ID`.
+- 📊 **Telegram Inline Charts** — The `/tendencia` command generates and sends interactive line charts via QuickChart.io mapping the price history of the last 30 entries.
+- 🚨 **Price Glitch Detector** — Statistical anomaly interceptor for extreme price drops, bypassing configured ceilings and thresholds to ensure promotion or bug airfares are not missed.
+- 🎨 **SaaS Dashboard (Google Blog Style)** — Modern, responsive web dashboard based on the visual guidelines of *Google Blog (The Keyword)* (Material Design 3) with persistent Light and Dark theme support.
+- 🔒 **HMAC Telegram Auth & Cookies** — Secure HMAC-SHA256 direct validation of credentials signed by Telegram and session persistence using `HttpOnly`/`SameSite` secure cookies.
 - 🧪 **Tests with Coverage** — CI blocks PRs with coverage below 80%.
 
 ---
@@ -306,6 +310,11 @@ The project includes a webhook server to respond to commands directly via Telegr
 - `/buscar [DESTINATION]` — Performs a real-time search for the given destination (e.g., `/buscar GRU`).
 - `/historico [DESTINATION]` — Shows the last 5 searches for that destination, allowing price tracking over time.
 - `/status` — Displays current tracker status, including origin, monitored destinations, and price threshold.
+- `/tendencia ORIGIN DESTINATION [DATE]` — Performs advanced statistical analysis and plots price trends from the last 30 entries of the route as an interactive line chart in Slate-800 Premium format via **QuickChart.io**. The response is delivered as an integrated balloon (chart + legend) containing:
+  - **Direction and Variation**: Statistically determines if the price trend is up, down, or stable over the last 7 days.
+  - **Extremes**: Displays the lowest price ever recorded in the database history and the latest tracked price.
+  - **Ideal Buying Day**: Identifies the day of the week that is statistically cheapest for the route based on arithmetic historical averages.
+  - **Resiliency Mechanism**: If the QuickChart API fails or times out, the bot dynamically falls back to a clean, text-based notification balloon.
 
 ### How to Run the Bot
 
@@ -337,6 +346,57 @@ PRICE_DROP_THRESHOLD=0.95   # alert on ≥ 5% drop (default)
 PRICE_DROP_THRESHOLD=0.90   # alert only on ≥ 10% drop
 PRICE_DROP_THRESHOLD=1.00   # always alert (no filter)
 ```
+
+---
+
+## SaaS Web Dashboard & API REST
+
+The project integrates a complete web platform based on the design of *Google Blog (The Keyword)* (Material Design 3), powered by a native Node.js REST API microservice.
+
+### Native Web Server Architecture
+- **Zero-Dependency**: The HTTP server is implemented natively using the integrated `node:http` module. No Express, Fastify, or external dependencies, ensuring zero cold-start times and high resource efficiency in serverless or lightweight container deployments.
+- **Integrated Persistence**: Direct integration with the native synchronous/asynchronous `node:sqlite` driver for extremely fast transactional operations to query history and configure alerts.
+
+### Cryptographic Security & Authentication
+- **HMAC Telegram Authentication**: The login flow is integrated with the official Telegram Login Widget. The authentication of frontend credentials (`id`, `first_name`, `username`, `auth_date`, `hash`) is verified on the backend by recalculating the HMAC-SHA256 of alphabetically sorted parameters using a key derived from `TELEGRAM_BOT_TOKEN` via a SHA-256 hash.
+- **Stateless Session Tokens**: Instead of storing sessions in a database, the server issues self-contained, cryptographically signed tokens. The token contains `id:firstName:username:timestamp` and an HMAC-SHA256 signature keyed by the `TELEGRAM_BOT_TOKEN`.
+- **Secure Session Cookies**: The token is injected via the `Set-Cookie` header with strict restriction directives: `HttpOnly` (prevents interception by client scripts and XSS attacks), `SameSite=Lax` (protects against CSRF), and a default validity of 30 days.
+
+### REST API Endpoints
+The backend maps native HTTP routes based on the session token retrieved from the request headers:
+- `GET /` — Serves the interactive Landing Page.
+- `GET /dashboard` — Renders the administrative dashboard control page for the authenticated user's alerts.
+- `GET /api/stats` — Aggregates global statistics directly from SQLite (`total_searches`, `cheapest_flight_ever`, `active_routes`).
+- `GET /api/history` — Returns the serialized price history for the filtered route to populate client-side charts.
+- `GET /api/alerts` — Lists all monitoring rules registered for the logged-in user (based on the Telegram Chat ID extracted from the session).
+- `POST /api/alerts` — Creates a new monitoring trigger (`origin`, `destination`, `max_price_brl`, `departure_date`, `return_date`).
+- `POST /api/alerts/update` — Updates the parameters (e.g., maximum price threshold) of an active monitoring trigger.
+- `DELETE /api/alerts` — Permanently deletes a registered alert.
+- `GET /api/auth/telegram` — Callback endpoint for cryptographic validation of the Telegram Login Widget.
+- `GET /api/auth/logout` — Clears the browser session cookie.
+
+### UI Google Blog Style (Material 3) & Reactivity
+- **Advanced & Modular CSS**: Fully responsive layout (Desktop/Mobile) featuring clean typography imported via Google Fonts (Outfit & Inter), soft borders with blur (`backdrop-filter`), elevated shadows, and elegant gradients.
+- **Flash of Unstyled Content (FOUC) Prevention**: A lightweight color preference script (`dark` vs `light` theme) injected directly into the `<head>` using `localStorage`, ensuring instantaneous loading of the correct theme with zero flash.
+- **Dynamic Visualization with Chart.js**: Line charts rendering history in a fully reactive manner. The chart theme dynamically adapts its colors (axes, grid lines, tooltips, and linear gradient fills) on the client side whenever the user toggles light/dark mode.
+
+---
+
+## Price Glitch Detector
+
+The tracker incorporates a statistical algorithm to identify extreme anomalies in airfare prices, commonly known as "fare glitches" or pricing bugs.
+
+### Algorithm Mechanics
+1. **Specific Sample Collection**: For each identified flight, the system queries the SQLite database history for the exact route on the specific departure date (`getRoutePriceHistory(origin, destination, departure_date)`).
+2. **Insufficient Sample Fallback**: The statistical detector requires a minimum of $N \ge 3$ historical records to compute averages. If the specific date lacks sufficient records, the algorithm automatically falls back to the complete route history (`getRoutePriceHistory(origin, destination)`).
+3. **Deviation Calculation & Trigger**: If sufficient historical data is present ($\ge 3$), the system calculates the simple arithmetic mean (`avgPrice`). A price "Glitch" is flagged if:
+   $$\text{Current Price BRL} \le \text{avgPrice} \times (1 - \text{PRICE\_ERROR\_THRESHOLD})$$
+   The default `PRICE_ERROR_THRESHOLD` is set to `0.45` (representing a price drop of over 45% compared to the historical average).
+
+### Rule Bypass Mechanism (Alert Prioritization)
+When a flight is classified as a Glitch, the standard alert notification rules are dynamically modified:
+- **Price Cap Bypass**: The bot triggers the alert even if the price exceeds the user's custom `max_price_brl` threshold. This ensures users do not miss massive price drops on premium or long-haul tickets that would otherwise be filtered out (e.g., a R$ 6,000.00 ticket plummeting to R$ 700.00).
+- **Exclusive Anti-Spam Control**: To avoid spamming subsequent searches that capture the same active glitch, subsequent glitch alerts are only triggered if the current price is *strictly lower* than the last registered glitch price.
 
 ---
 
