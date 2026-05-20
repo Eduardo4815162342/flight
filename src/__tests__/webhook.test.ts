@@ -5,6 +5,7 @@ import * as userService from "../services/user";
 import * as aiConcierge from "../services/aiConcierge";
 import * as aiUsage from "../services/aiUsage";
 import * as subscription from "../services/subscription";
+import * as historyService from "../services/history";
 
 // ── Mocks ─────────────────────────────────────────────────────────────────
 
@@ -39,6 +40,9 @@ jest.mock("../services/user", () => ({
 
 jest.mock("../services/history", () => ({
   loadHistory: jest.fn().mockReturnValue([]),
+  getRoutePriceHistory: jest.fn().mockResolvedValue([]),
+  getRouteLowestPrice: jest.fn().mockResolvedValue(null),
+  getLatestDepartureDate: jest.fn().mockResolvedValue(null),
 }));
 
 jest.mock("../services/aiConcierge", () => ({
@@ -120,6 +124,9 @@ beforeEach(() => {
   (subscription.startTrialIfMissing as jest.Mock).mockResolvedValue(undefined);
   (subscription.activateSubscription as jest.Mock).mockResolvedValue(undefined);
   (subscription.cancelSubscription as jest.Mock).mockResolvedValue(undefined);
+  (historyService.getRoutePriceHistory as jest.Mock).mockResolvedValue([]);
+  (historyService.getRouteLowestPrice as jest.Mock).mockResolvedValue(null);
+  (historyService.getLatestDepartureDate as jest.Mock).mockResolvedValue(null);
 });
 
 // ── Chat privado apenas ────────────────────────────────────────────────────
@@ -519,3 +526,76 @@ describe("Comandos de Alerta", () => {
     expect(body.text).toContain("comandos de busca");
   });
 });
+
+describe("Comando /tendencia", () => {
+  beforeEach(() => {
+    (userService.isUserAuthorized as jest.Mock).mockResolvedValue(true);
+  });
+
+  it("exibe orientacoes se argumentos forem insuficientes", async () => {
+    mock.onPost(/sendMessage/).reply(200, { ok: true });
+
+    await handleUpdate(msgUpdate(USER_ID, "/tendencia BSB"));
+
+    const body = JSON.parse(mock.history.post[0].data);
+    expect(body.text).toContain("Formato: `/tendencia");
+  });
+
+  it("informa falta de registros se historico tiver menos de 2 entradas", async () => {
+    mock.onPost(/sendMessage/).reply(200, { ok: true });
+    (historyService.getRoutePriceHistory as jest.Mock).mockResolvedValue([[1716200000, 500]]);
+
+    await handleUpdate(msgUpdate(USER_ID, "/tendencia BSB GRU"));
+
+    // POST[0] = "Analisando...", POST[1] = "Sem dados suficientes"
+    expect(mock.history.post).toHaveLength(2);
+    const body = JSON.parse(mock.history.post[1].data);
+    expect(body.text).toContain("Sem dados suficientes");
+  });
+
+  it("gera grafico via QuickChart e envia como sendPhoto quando ha historico suficiente", async () => {
+    mock.onPost(/sendMessage/).reply(200, { ok: true });
+    mock.onPost(/sendPhoto/).reply(200, { ok: true });
+    (historyService.getRoutePriceHistory as jest.Mock).mockResolvedValue([
+      [1716200000, 500],
+      [1716210000, 480],
+    ]);
+
+    await handleUpdate(msgUpdate(USER_ID, "/tendencia BSB GRU"));
+
+    // Devem ter 2 posts:
+    // 1. sendMessage (Analisando...)
+    // 2. sendPhoto (Gráfico + Legenda)
+    const urls = mock.history.post.map((r) => r.url);
+    expect(urls).toContain(`https://api.telegram.org/bottest-token/sendMessage`);
+    expect(urls).toContain(`https://api.telegram.org/bottest-token/sendPhoto`);
+
+    const photoCall = mock.history.post.find((r) => r.url?.includes("sendPhoto"));
+    const body = JSON.parse(photoCall!.data);
+    expect(body.photo).toContain("quickchart.io/chart");
+    expect(body.caption).toContain("Tendência BSB → GRU");
+    expect(body.caption).toContain("Último preço");
+  });
+
+  it("cai para texto via sendMessage (fallback) caso o sendPhoto falhe", async () => {
+    mock.onPost(/sendMessage/).reply(200, { ok: true });
+    mock.onPost(/sendPhoto/).reply(500); // Falha de rede/API
+    (historyService.getRoutePriceHistory as jest.Mock).mockResolvedValue([
+      [1716200000, 500],
+      [1716210000, 480],
+    ]);
+
+    await handleUpdate(msgUpdate(USER_ID, "/tendencia BSB GRU"));
+
+    // Deve enviar 2 posts para sendMessage:
+    // 1. Analisando...
+    // 2. Fallback de texto da tendência
+    const sendMessages = mock.history.post.filter((r) => r.url?.includes("sendMessage"));
+    expect(sendMessages).toHaveLength(2);
+
+    const fallbackBody = JSON.parse(sendMessages[1].data);
+    expect(fallbackBody.text).toContain("Tendência BSB → GRU");
+    expect(fallbackBody.text).toContain("Último preço");
+  });
+});
+

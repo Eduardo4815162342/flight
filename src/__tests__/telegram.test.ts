@@ -127,3 +127,19 @@ describe("sendErrorAlert", () => {
     expect(requestBody.text).toContain("BSB→GRU");
   });
 });
+
+describe("sendPhoto", () => {
+  it("envia foto com legenda e chat_id correto", async () => {
+    mock.onPost(/sendPhoto/).reply(200, { ok: true });
+
+    const { sendPhoto } = await import("../services/telegram");
+    await sendPhoto("https://example.com/chart.png", "Minha Legenda");
+
+    const requestBody = JSON.parse(mock.history.post[0].data);
+    expect(requestBody.chat_id).toBe("123456");
+    expect(requestBody.photo).toBe("https://example.com/chart.png");
+    expect(requestBody.caption).toBe("Minha Legenda");
+    expect(requestBody.parse_mode).toBe("Markdown");
+  });
+});
+
