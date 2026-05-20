@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BSB Price Track | SaaS Dashboard</title>
     <meta name="description" content="Acompanhe histórico de preços e gerencie seus alertas em tempo real.">
+    <!-- Prevent Theme Flash -->
+    <script>
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.classList.add('dark-theme');
+        }
+    </script>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,25 +22,54 @@
     
     <style>
         :root {
-            --bg: #07090e;
-            --card: rgba(13, 17, 28, 0.75);
-            --card-hover: rgba(20, 26, 42, 0.85);
-            --border: rgba(255, 255, 255, 0.06);
-            --border-hover: rgba(255, 255, 255, 0.12);
-            --text: #f3f4f6;
-            --muted: #9ca3af;
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --primary-glow: rgba(99, 102, 241, 0.18);
-            --green: #10b981;
-            --green-glow: rgba(16, 185, 129, 0.15);
-            --yellow: #f59e0b;
-            --red: #ef4444;
-            --radius-lg: 16px;
-            --radius-md: 12px;
+            --bg: #f8f9fa; /* Google Light Grey background */
+            --nav-bg: #ffffff; /* Solid White header */
+            --card: #ffffff; /* Card background */
+            --card-hover: #ffffff;
+            --border: #dadce0; /* Google border grey */
+            --border-hover: #bdc1c6;
+            --text: #3c4043; /* Standard Google text black/grey */
+            --text-title: #202124; /* Google bold titles black */
+            --muted: #5f6368; /* Google muted text */
+            --primary: #1a73e8; /* Google Blue */
+            --primary-dark: #174ea6; /* Google Dark Blue on hover */
+            --primary-glow: rgba(26, 115, 232, 0.08);
+            --green: #34a853; /* Google Green */
+            --green-glow: rgba(52, 168, 83, 0.1);
+            --yellow: #fbbc05; /* Google Yellow */
+            --yellow-glow: rgba(251, 188, 5, 0.1);
+            --red: #ea4335; /* Google Red */
+            --red-glow: rgba(234, 67, 53, 0.1);
+            --radius-lg: 12px; /* Smooth rounded corners */
+            --radius-md: 8px;
             --radius-sm: 8px;
-            --shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15); /* Google Blog shadow */
+            --shadow-hover: 0 6px 10px 4px rgba(60,64,67,0.15), 0 2px 3px 0 rgba(60,64,67,0.3); /* Google Blog hover shadow */
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Material Design Dark Theme */
+        .dark-theme {
+            --bg: #202124; /* Google Dark Gray body */
+            --nav-bg: #2d2e30; /* Google Dark Gray navbar */
+            --card: #2d2e30; /* Google Dark Gray card */
+            --card-hover: #35363a;
+            --border: #3c4043; /* Dark border */
+            --border-hover: #5f6368;
+            --text: #e8eaed; /* Light gray text */
+            --text-title: #ffffff; /* White title text */
+            --muted: #9ca3af; /* Muted gray text */
+            --primary: #8ab4f8; /* Material Dark Blue */
+            --primary-dark: #aecbfa; /* Material hover blue */
+            --primary-glow: rgba(138, 180, 248, 0.15);
+            --green: #81c995; /* Material Dark Green */
+            --green-glow: rgba(129, 201, 149, 0.15);
+            --yellow: #fde293; /* Material Dark Yellow */
+            --yellow-glow: rgba(253, 226, 147, 0.15);
+            --red: #f28b82; /* Material Dark Red */
+            --red-glow: rgba(242, 139, 130, 0.15);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+            --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
         }
 
         * {
@@ -45,30 +80,27 @@
         body {
             margin: 0;
             background-color: var(--bg);
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.04) 0px, transparent 50%);
-            background-attachment: fixed;
             color: var(--text);
-            font-family: 'Inter', sans-serif;
+            font-family: "Google Sans", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             -webkit-font-smoothing: antialiased;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             overflow-x: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         h1, h2, h3, h4, .font-title {
-            font-family: 'Outfit', sans-serif;
-            font-weight: 700;
+            font-family: "Google Sans", "Outfit", -apple-system, BlinkMacSystemFont, sans-serif;
+            font-weight: 500;
+            color: var(--text-title);
+            letter-spacing: -0.5px;
             margin: 0;
         }
 
-        /* Glassmorphism utility */
+        /* Google elegant card component */
         .glass {
-            background: var(--card);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            background-color: var(--card);
             border: 1px solid var(--border);
             border-radius: var(--radius-lg);
             box-shadow: var(--shadow);
@@ -77,6 +109,8 @@
 
         .glass:hover {
             border-color: var(--border-hover);
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-2px);
         }
 
         /* Navigation */
@@ -85,15 +119,15 @@
             top: 0;
             z-index: 100;
             border-bottom: 1px solid var(--border);
-            background: rgba(7, 9, 14, 0.8);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            background: var(--nav-bg);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            transition: background-color 0.3s var(--transition), border-color 0.3s var(--transition);
         }
 
         .nav-container {
-            max-width: 1280px;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 16px 24px;
+            padding: 14px 24px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -102,16 +136,17 @@
         .brand {
             display: flex;
             align-items: center;
-            gap: 10px;
-            font-size: 20px;
-            color: var(--text);
+            gap: 12px;
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--text-title);
             text-decoration: none;
+            font-family: "Google Sans", sans-serif;
         }
 
         .brand i {
             color: var(--primary);
             font-size: 24px;
-            filter: drop-shadow(0 0 8px var(--primary));
         }
 
         .user-profile {
@@ -128,7 +163,8 @@
 
         .user-name {
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 500;
+            color: var(--text-title);
         }
 
         .user-handle {
@@ -136,18 +172,20 @@
             color: var(--muted);
         }
 
+        /* Elegant Google buttons */
         .btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            padding: 10px 18px;
-            border-radius: var(--radius-sm);
-            font-weight: 600;
+            padding: 10px 22px;
+            border-radius: 48px; /* Elegant pill shape */
+            font-weight: 500;
             font-size: 14px;
             cursor: pointer;
             transition: var(--transition);
             border: 1px solid transparent;
+            font-family: "Google Sans", sans-serif;
         }
 
         .btn:hover {
@@ -161,40 +199,61 @@
         .btn-primary {
             background: var(--primary);
             color: white;
-            box-shadow: 0 4px 12px var(--primary-glow);
         }
 
         .btn-primary:hover {
             background: var(--primary-dark);
-            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.3);
+            box-shadow: 0 4px 8px var(--primary-glow);
         }
 
         .btn-secondary {
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--card);
             border-color: var(--border);
-            color: var(--text);
+            color: var(--primary);
         }
 
         .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: var(--primary-glow);
+            border-color: var(--primary);
         }
 
         .btn-danger {
-            background: rgba(239, 68, 68, 0.1);
-            border-color: rgba(239, 68, 68, 0.2);
+            background: var(--red-glow);
+            border-color: transparent;
             color: var(--red);
         }
 
         .btn-danger:hover {
             background: var(--red);
             color: white;
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+            box-shadow: 0 4px 8px var(--red-glow);
+        }
+
+        .btn-theme-toggle {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 8px;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-theme-toggle:hover {
+            background-color: var(--primary-glow);
+            border-color: var(--primary);
+            color: var(--primary);
         }
 
         /* Layout Structure */
         main {
             flex: 1;
-            max-width: 1280px;
+            max-width: 1200px;
             width: 100%;
             margin: 0 auto;
             padding: 32px 24px;
@@ -210,9 +269,10 @@
 
         .login-card {
             width: 100%;
-            max-width: 460px;
-            padding: 40px;
+            max-width: 440px;
+            padding: 48px 40px;
             text-align: center;
+            border-radius: var(--radius-lg);
         }
 
         .login-icon {
@@ -225,12 +285,13 @@
 
         @keyframes float {
             0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-8px); }
+            50% { transform: translateY(-6px); }
         }
 
         .login-card h2 {
-            font-size: 28px;
+            font-size: 26px;
             margin-bottom: 12px;
+            font-weight: 500;
         }
 
         .login-card p {
@@ -261,20 +322,20 @@
         }
 
         .dash-header h2 {
-            font-size: 32px;
-            background: linear-gradient(90deg, #a5b4fc, #818cf8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-size: 28px;
+            font-weight: 500;
+            color: var(--text-title);
         }
 
         .last-update-pill {
-            padding: 6px 12px;
-            background: rgba(99, 102, 241, 0.08);
-            border: 1px solid rgba(99, 102, 241, 0.15);
-            color: #818cf8;
+            padding: 6px 14px;
+            background: var(--primary-glow);
+            border: 1px solid rgba(26, 115, 232, 0.15);
+            color: var(--primary);
             font-size: 12px;
             font-weight: 500;
             border-radius: 100px;
+            font-family: "Google Sans", sans-serif;
         }
 
         /* Metrics Row */
@@ -289,26 +350,36 @@
             display: flex;
             align-items: center;
             gap: 20px;
+            border-radius: var(--radius-lg);
         }
 
         .metric-icon {
             width: 48px;
             height: 48px;
-            border-radius: var(--radius-md);
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border);
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 20px;
-            color: var(--primary);
             transition: var(--transition);
         }
 
-        .metric-card:hover .metric-icon {
+        /* Pastels color codes for metric cards */
+        .metrics-grid div:nth-child(1) .metric-icon {
             background: var(--primary-glow);
-            border-color: rgba(99, 102, 241, 0.3);
-            color: #818cf8;
+            color: var(--primary);
+        }
+        .metrics-grid div:nth-child(2) .metric-icon {
+            background: var(--green-glow);
+            color: var(--green);
+        }
+        .metrics-grid div:nth-child(3) .metric-icon {
+            background: var(--yellow-glow);
+            color: var(--yellow);
+        }
+        .metrics-grid div:nth-child(4) .metric-icon {
+            background: var(--primary-glow);
+            color: var(--primary);
         }
 
         .metric-info {
@@ -318,15 +389,18 @@
         }
 
         .metric-label {
-            font-size: 13px;
+            font-size: 12px;
             color: var(--muted);
             font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .metric-value {
             font-size: 24px;
-            font-weight: 700;
-            font-family: 'Outfit', sans-serif;
+            font-weight: 500;
+            font-family: "Google Sans", sans-serif;
+            color: var(--text-title);
         }
 
         .metric-value.highlight {
@@ -349,9 +423,11 @@
 
         .panel-title {
             font-size: 18px;
+            font-weight: 500;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            color: var(--text-title);
         }
 
         .panel-title i {
@@ -359,7 +435,7 @@
         }
 
         .select-route {
-            background: rgba(255, 255, 255, 0.04);
+            background: var(--card);
             border: 1px solid var(--border);
             color: var(--text);
             padding: 8px 16px;
@@ -372,7 +448,6 @@
 
         .select-route:hover {
             border-color: var(--border-hover);
-            background: rgba(255, 255, 255, 0.08);
         }
 
         .chart-wrapper {
@@ -390,10 +465,11 @@
 
         .route-info-tag {
             font-size: 20px;
-            font-weight: 700;
+            font-weight: 500;
             margin-bottom: 12px;
-            font-family: 'Outfit', sans-serif;
+            font-family: "Google Sans", sans-serif;
             text-align: center;
+            color: var(--text-title);
         }
 
         .price-status-text {
@@ -401,15 +477,16 @@
             font-size: 14px;
             margin-bottom: 24px;
             color: var(--muted);
+            line-height: 1.5;
         }
 
         .price-status-text span {
-            font-weight: 700;
+            font-weight: 500;
         }
 
-        .price-status-text .cheap { color: var(--green); }
-        .price-status-text .typical { color: var(--yellow); }
-        .price-status-text .expensive { color: var(--red); }
+        .price-status-text .cheap { color: var(--green); font-weight: 700; }
+        .price-status-text .typical { color: var(--yellow); font-weight: 700; }
+        .price-status-text .expensive { color: var(--red); font-weight: 700; }
 
         .range-bar-container {
             position: relative;
@@ -418,11 +495,11 @@
         }
 
         .range-bar {
-            height: 12px;
-            border-radius: 6px;
+            height: 8px;
+            border-radius: 4px;
             display: flex;
             overflow: hidden;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
         }
 
         .range-segment {
@@ -430,18 +507,21 @@
         }
 
         .segment-cheap {
-            background: linear-gradient(90deg, #059669, var(--green));
+            background: var(--green);
             flex: 1;
+            opacity: 0.85;
         }
 
         .segment-typical {
-            background: linear-gradient(90deg, #d97706, var(--yellow));
+            background: var(--yellow);
             flex: 1.5;
+            opacity: 0.85;
         }
 
         .segment-expensive {
-            background: linear-gradient(90deg, #dc2626, var(--red));
+            background: var(--red);
             flex: 1;
+            opacity: 0.85;
         }
 
         .range-labels {
@@ -449,14 +529,14 @@
             justify-content: space-between;
             font-size: 11px;
             color: var(--muted);
-            font-weight: 600;
+            font-weight: 500;
             margin-top: 8px;
             padding: 0 4px;
         }
 
         .range-pointer {
             position: absolute;
-            top: 2px;
+            top: 0;
             transform: translateX(-50%);
             display: flex;
             flex-direction: column;
@@ -465,14 +545,14 @@
         }
 
         .pointer-bubble {
-            background: var(--text);
-            color: var(--bg);
+            background: var(--text-title);
+            color: var(--card);
             font-size: 11px;
             font-weight: 700;
-            padding: 3px 6px;
+            padding: 4px 8px;
             border-radius: var(--radius-sm);
             white-space: nowrap;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             margin-bottom: 2px;
         }
 
@@ -481,7 +561,7 @@
             height: 0;
             border-left: 5px solid transparent;
             border-right: 5px solid transparent;
-            border-top: 6px solid var(--text);
+            border-top: 6px solid var(--text-title);
         }
 
         /* Alerts & Form Section */
@@ -506,7 +586,7 @@
         }
 
         .alerts-wrapper::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
+            background: var(--border);
             border-radius: 3px;
         }
 
@@ -531,11 +611,12 @@
             flex-direction: column;
             gap: 14px;
             overflow: hidden;
+            border-radius: var(--radius-lg);
             animation: cardEnter 0.3s ease-out;
         }
 
         @keyframes cardEnter {
-            from { opacity: 0; transform: translateY(12px); }
+            from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
@@ -554,12 +635,13 @@
         }
 
         .alert-route {
-            font-size: 18px;
-            font-weight: 700;
+            font-size: 16px;
+            font-weight: 500;
             display: flex;
             align-items: center;
             gap: 8px;
-            font-family: 'Outfit', sans-serif;
+            font-family: "Google Sans", sans-serif;
+            color: var(--text-title);
         }
 
         .alert-route i {
@@ -572,7 +654,8 @@
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--bg);
+            color: var(--muted);
             padding: 4px 8px;
             border-radius: 4px;
             border: 1px solid var(--border);
@@ -619,7 +702,7 @@
 
         .alert-price-input {
             width: 90px;
-            background: rgba(255, 255, 255, 0.03);
+            background: var(--card);
             border: 1px solid var(--border);
             color: var(--text);
             padding: 6px 10px;
@@ -632,7 +715,7 @@
 
         .alert-price-input:focus {
             border-color: var(--primary);
-            background: rgba(255, 255, 255, 0.06);
+            box-shadow: 0 0 0 2px var(--primary-glow);
         }
 
         .btn-mini-save {
@@ -647,7 +730,7 @@
             justify-content: center;
             cursor: pointer;
             transition: var(--transition);
-            opacity: 0.7;
+            opacity: 0.8;
         }
 
         .btn-mini-save:hover {
@@ -663,11 +746,12 @@
 
         /* Alerta Form */
         .alert-form {
-            padding: 28px;
+            padding: 32px 28px;
+            border-radius: var(--radius-lg);
         }
 
         .form-group {
-            margin-bottom: 16px;
+            margin-bottom: 18px;
             display: flex;
             flex-direction: column;
             gap: 6px;
@@ -680,9 +764,9 @@
         }
 
         label {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--muted);
-            font-weight: 600;
+            font-weight: 500;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
@@ -691,46 +775,50 @@
         input[type="number"],
         input[type="date"],
         select {
-            background: rgba(255, 255, 255, 0.03);
+            background: var(--card);
             border: 1px solid var(--border);
             border-radius: var(--radius-sm);
             padding: 10px 14px;
             color: var(--text);
             font-size: 14px;
+            font-weight: 500;
             width: 100%;
             transition: var(--transition);
         }
 
         input:focus, select:focus {
             border-color: var(--primary);
-            background: rgba(255, 255, 255, 0.06);
-            box-shadow: 0 0 8px rgba(99, 102, 241, 0.2);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+            background: var(--card);
         }
 
         .trip-type-toggle {
             display: flex;
             border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
+            border-radius: 48px; /* Beautiful capsule shape */
             overflow: hidden;
-            background: rgba(255, 255, 255, 0.02);
-            margin-bottom: 8px;
+            background: var(--bg);
+            margin-bottom: 16px;
+            padding: 2px;
         }
 
         .toggle-btn {
             flex: 1;
             text-align: center;
-            padding: 10px;
+            padding: 8px 12px;
             font-size: 13px;
-            font-weight: 600;
+            font-weight: 500;
             color: var(--muted);
             cursor: pointer;
+            border-radius: 48px;
             transition: var(--transition);
         }
 
         .toggle-btn.active {
-            background: var(--primary);
-            color: white;
-            box-shadow: 0 2px 6px rgba(99, 102, 241, 0.2);
+            background: var(--card);
+            color: var(--primary);
+            font-weight: 700;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
         .form-message {
@@ -743,15 +831,15 @@
         }
 
         .form-message.success {
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid rgba(16, 185, 129, 0.2);
+            background: var(--green-glow);
+            border: 1px solid rgba(52, 168, 83, 0.2);
             color: var(--green);
             display: block;
         }
 
         .form-message.error {
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.2);
+            background: var(--red-glow);
+            border: 1px solid rgba(234, 67, 53, 0.2);
             color: var(--red);
             display: block;
         }
@@ -764,7 +852,12 @@
             text-align: center;
             font-size: 13px;
             color: var(--muted);
-            background: rgba(7, 9, 14, 0.8);
+            background: var(--nav-bg);
+            transition: background-color 0.3s var(--transition), border-color 0.3s var(--transition);
+        }
+
+        footer p {
+            margin: 0;
         }
 
         /* Responsive Layout */
@@ -805,14 +898,21 @@
                 <span>BSB Price Track <small style="font-size:10px; color:var(--primary); font-weight:700;">SAAS</small></span>
             </a>
             
-            <div class="user-profile" id="user-profile-nav" style="display:none;">
-                <div class="user-info">
-                    <span class="user-name" id="user-display-name">Nome</span>
-                    <span class="user-handle" id="user-display-handle">@username</span>
-                </div>
-                <button class="btn btn-secondary" onclick="logout()">
-                    <i class="ph-bold ph-sign-out"></i> Sair
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <!-- Theme Toggle Button -->
+                <button class="btn-theme-toggle" id="theme-toggle-btn" onclick="toggleTheme()" aria-label="Alternar Tema">
+                    <i class="ph-bold ph-moon" style="font-size: 20px;"></i>
                 </button>
+                
+                <div class="user-profile" id="user-profile-nav" style="display:none;">
+                    <div class="user-info">
+                        <span class="user-name" id="user-display-name">Nome</span>
+                        <span class="user-handle" id="user-display-handle">@username</span>
+                    </div>
+                    <button class="btn btn-secondary" onclick="logout()">
+                        <i class="ph-bold ph-sign-out"></i> Sair
+                    </button>
+                </div>
             </div>
         </div>
     </nav>
@@ -1009,8 +1109,46 @@
         let priceEvolutionChart = null;
         let selectedTripType = 'one-way';
 
+        // Inicializar Tema Claro/Escuro de acordo com o localStorage
+        function initTheme() {
+            const isDark = localStorage.getItem('theme') === 'dark';
+            const btn = document.getElementById('theme-toggle-btn');
+            if (btn) {
+                btn.innerHTML = isDark 
+                    ? '<i class="ph-bold ph-sun" style="font-size: 20px;"></i>' 
+                    : '<i class="ph-bold ph-moon" style="font-size: 20px;"></i>';
+            }
+        }
+
+        // Alternar Tema Claro/Escuro
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark-theme');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            
+            // Atualizar ícone do botão
+            const btn = document.getElementById('theme-toggle-btn');
+            if (btn) {
+                btn.innerHTML = isDark 
+                    ? '<i class="ph-bold ph-sun" style="font-size: 20px;"></i>' 
+                    : '<i class="ph-bold ph-moon" style="font-size: 20px;"></i>';
+            }
+            
+            // Re-renderizar o gráfico se ele já existir
+            const chartFilter = document.getElementById('chart-route-filter');
+            if (chartFilter) {
+                renderChart(chartFilter.value);
+            }
+
+            // Se a tela de login estiver visível, recarrega o widget do Telegram com o novo tema
+            const loginScreen = document.getElementById('login-screen-view');
+            if (loginScreen && loginScreen.style.display !== 'none') {
+                showLoginScreen();
+            }
+        }
+
         // Inicializador ao carregar a página
         window.addEventListener('DOMContentLoaded', () => {
+            initTheme();
             checkAuth();
             loadStats();
         });
@@ -1088,6 +1226,9 @@
                 script.setAttribute('data-telegram-login', botUsername);
                 script.setAttribute('data-size', 'large');
                 script.setAttribute('data-radius', '12');
+                if (document.documentElement.classList.contains('dark-theme')) {
+                    script.setAttribute('data-dark', '1');
+                }
                 script.setAttribute('data-auth-url', window.location.origin + '/api/auth/telegram');
                 script.setAttribute('data-request-access', 'write');
                 
@@ -1155,6 +1296,34 @@
             });
         }
 
+        // Retorna cores baseadas no tema atual (Claro ou Escuro)
+        function getThemeColors() {
+            const isDark = document.documentElement.classList.contains('dark-theme');
+            if (isDark) {
+                return {
+                    text: '#e8eaed',
+                    grid: 'rgba(255, 255, 255, 0.08)',
+                    colors: [
+                        { border: '#8ab4f8', bg: 'rgba(138, 180, 248, 0.08)' },
+                        { border: '#81c995', bg: 'rgba(129, 201, 149, 0.08)' },
+                        { border: '#fde293', bg: 'rgba(253, 226, 147, 0.08)' },
+                        { border: '#f28b82', bg: 'rgba(242, 139, 130, 0.08)' }
+                    ]
+                };
+            } else {
+                return {
+                    text: '#5f6368',
+                    grid: '#dadce0',
+                    colors: [
+                        { border: '#1a73e8', bg: 'rgba(26, 115, 232, 0.08)' },
+                        { border: '#34a853', bg: 'rgba(52, 168, 83, 0.08)' },
+                        { border: '#fbbc05', bg: 'rgba(251, 188, 5, 0.08)' },
+                        { border: '#ea4335', bg: 'rgba(234, 67, 53, 0.08)' }
+                    ]
+                };
+            }
+        }
+
         // Renderiza o gráfico de evolução
         function renderChart(selectedRoute = '') {
             const canvas = document.getElementById('priceChart');
@@ -1169,15 +1338,11 @@
             const days = Array.from(new Set(filteredData.map(h => h.timestamp.split('T')[0]))).slice(-30);
             const routes = Array.from(new Set(filteredData.map(h => `${h.origin}→${h.destination}`)));
 
+            const themeColors = getThemeColors();
+
             // Prepara datasets
             const datasets = routes.map((route, idx) => {
-                const colors = [
-                    { border: '#6366f1', bg: 'rgba(99, 102, 241, 0.05)' },
-                    { border: '#10b981', bg: 'rgba(16, 185, 129, 0.05)' },
-                    { border: '#f59e0b', bg: 'rgba(245, 158, 11, 0.05)' },
-                    { border: '#ef4444', bg: 'rgba(239, 68, 68, 0.05)' }
-                ];
-                const c = colors[idx % colors.length];
+                const c = themeColors.colors[idx % themeColors.colors.length];
 
                 const points = days.map(day => {
                     const matches = filteredData.filter(h => 
@@ -1220,7 +1385,7 @@
                     plugins: {
                         legend: {
                             labels: {
-                                color: '#9ca3af',
+                                color: themeColors.text,
                                 font: { family: 'Inter', weight: 500 }
                             }
                         },
@@ -1232,12 +1397,12 @@
                     scales: {
                         x: {
                             grid: { display: false },
-                            ticks: { color: '#9ca3af', font: { family: 'Inter' } }
+                            ticks: { color: themeColors.text, font: { family: 'Inter' } }
                         },
                         y: {
-                            grid: { color: 'rgba(255, 255, 255, 0.04)' },
+                            grid: { color: themeColors.grid },
                             ticks: { 
-                                color: '#9ca3af', 
+                                color: themeColors.text, 
                                 font: { family: 'Inter' },
                                 callback: (val) => 'R$ ' + val
                             }
