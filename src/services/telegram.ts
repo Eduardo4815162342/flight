@@ -124,3 +124,23 @@ export async function sendWeeklyReport(summaries: any[], targetChatId?: string |
   lines.push(`_${summaries.length} rota(s) monitorada(s)_`);
   await sendMessage(lines.join("\n"), targetChatId);
 }
+
+/** Envia foto (gráfico/imagem) via Telegram */
+export async function sendPhoto(
+  photoUrl: string,
+  caption?: string,
+  targetChatId?: string | number
+): Promise<void> {
+  const chatId = targetChatId || config.telegram.chatId;
+  await axios.post(
+    `${BASE_URL}/sendPhoto`,
+    {
+      chat_id: chatId,
+      photo: photoUrl,
+      caption,
+      parse_mode: "Markdown",
+    },
+    { timeout: TIMEOUT_MS }
+  );
+}
+

@@ -58,6 +58,36 @@ export async function sendReply(chatId: number | string, text: string): Promise<
 }
 
 /**
+ * Envia foto com legenda via Telegram.
+ * Possui fallback automático para mensagem de texto caso o envio falhe.
+ */
+export async function sendPhotoReply(
+  chatId: number | string,
+  photoUrl: string,
+  caption?: string
+): Promise<void> {
+  try {
+    await axios.post(
+      `${BASE_URL}/sendPhoto`,
+      {
+        chat_id: chatId,
+        photo: photoUrl,
+        caption,
+        parse_mode: "Markdown",
+      },
+      { timeout: TIMEOUT_MS }
+    );
+  } catch (err) {
+    console.error(`[webhook] Erro ao enviar foto para ${chatId}:`, err instanceof Error ? err.message : err);
+    if (caption) {
+      // Fallback seguro de texto puro
+      await sendReply(chatId, caption);
+    }
+  }
+}
+
+
+/**
  * Envia mensagem com teclado inline (botões).
  * Retorna o message_id da mensagem enviada, ou null em caso de falha.
  */
@@ -547,7 +577,91 @@ async function handleTendencia(chatId: string, args: string[]): Promise<void> {
   }
 
   lines.push("", `_Baseado em ${priceData.length} registro(s)._`);
-  await sendReply(chatId, lines.join("\n"));
+
+  // Limita o histórico aos últimos 30 registros para manter o gráfico limpo e legível
+  const limitedPriceData = priceData.slice(-30);
+
+  // Formata os rótulos do eixo X (DD/MM) e dados do eixo Y (preço)
+  const labels = limitedPriceData.map(([ts]) => {
+    const d = new Date(ts * 1000);
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    return `${day}/${month}`;
+  });
+  const prices = limitedPriceData.map(([, price]) => price);
+
+  // Configuração Chart.js em formato premium dark slate
+  const chartConfig = {
+    type: "line",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: "Preço (R$)",
+          data: prices,
+          fill: true,
+          backgroundColor: "rgba(99, 102, 241, 0.12)", // Indigo translúcido
+          borderColor: "#6366f1", // Indigo vibrante
+          borderWidth: 3,
+          pointRadius: 4,
+          pointBackgroundColor: "#6366f1",
+          pointBorderColor: "#ffffff",
+          lineTension: 0.4,
+        },
+      ],
+    },
+    options: {
+      title: {
+        display: true,
+        text: `Evolução de Preço: ${origin} -> ${destination}`,
+        fontColor: "#f8fafc",
+        fontSize: 16,
+        fontFamily: "Inter, sans-serif",
+      },
+      legend: {
+        display: false,
+      },
+      scales: {
+        xAxes: [
+          {
+            gridLines: {
+              color: "rgba(255, 255, 255, 0.08)",
+            },
+            ticks: {
+              fontColor: "#94a3b8",
+              fontFamily: "Inter, sans-serif",
+            },
+          },
+        ],
+        yAxes: [
+          {
+            gridLines: {
+              color: "rgba(255, 255, 255, 0.08)",
+            },
+            ticks: {
+              fontColor: "#94a3b8",
+              fontFamily: "Inter, sans-serif",
+            },
+          },
+        ],
+      },
+    },
+  };
+
+  // URL do QuickChart.io formatada (largura 500, altura 300, fundo slate-800 #1e293b)
+  const quickChartUrl = `https://quickchart.io/chart?w=500&h=300&bkg=1e293b&c=${encodeURIComponent(
+    JSON.stringify(chartConfig)
+  )}`;
+
+  const caption = lines.join("\n");
+  if (caption.length > 1024) {
+    // Se o texto exceder 1024 caracteres, envia a foto isolada e depois o texto
+    await sendPhotoReply(chatId, quickChartUrl);
+    await sendReply(chatId, caption);
+  } else {
+    // Envia tudo em um único balão integrado (gráfico + legenda)
+    await sendPhotoReply(chatId, quickChartUrl, caption);
+  }
 }
 
 async function handlePerguntar(chatId: string, args: string[]): Promise<void> {
