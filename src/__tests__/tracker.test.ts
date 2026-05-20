@@ -14,6 +14,7 @@ const mockConfig = {
     returnDate: undefined as string | undefined,
     maxPriceBRL: 300,
     priceDropThreshold: 0.95,
+    priceErrorThreshold: 0.45,
   },
   filters: {
     airlinesWhitelist: [] as string[],
@@ -29,6 +30,7 @@ const mockSearchWithRapidAPI = jest.fn();
 const mockSendFlightAlert = jest.fn();
 const mockAppendHistory = jest.fn();
 const mockGetLastCheapestPrice = jest.fn();
+const mockGetRoutePriceHistory = jest.fn();
 const mockGetAllActiveAlerts = jest.fn();
 
 jest.mock("../apis/apify", () => ({
@@ -49,6 +51,7 @@ jest.mock("../services/telegram", () => ({
 jest.mock("../services/history", () => ({
   appendHistory: (...args: unknown[]) => mockAppendHistory(...args),
   getLastCheapestPrice: (...args: unknown[]) => mockGetLastCheapestPrice(...args),
+  getRoutePriceHistory: (...args: unknown[]) => mockGetRoutePriceHistory(...args),
 }));
 
 jest.mock("../services/user", () => ({
@@ -64,6 +67,7 @@ beforeEach(() => {
   mockGetAllActiveAlerts.mockResolvedValue([]);
   mockGetLastCheapestPrice.mockResolvedValue(null);
   mockSearchWithApify.mockResolvedValue([]);
+  mockGetRoutePriceHistory.mockResolvedValue([]);
 });
 
 function makeFlight(priceBRL: number): Flight {
@@ -114,7 +118,9 @@ describe("runTracker", () => {
     expect(mockSendFlightAlert).toHaveBeenCalledWith(
       expect.any(Object),
       false,
-      "user123"
+      "user123",
+      false,
+      undefined
     );
   });
 
@@ -149,5 +155,111 @@ describe("runTracker", () => {
     await runTracker();
 
     expect(mockSendFlightAlert).toHaveBeenCalled();
+  });
+
+  describe("Detector de Erro de Tarifa", () => {
+    it("detecta erro de tarifa com base no historico de data especifica (>=3 amostras)", async () => {
+      // Configuração: média de 500, preço atual de 250 (50% de queda, superior ao threshold padrão de 45%)
+      mockSearchWithApify.mockResolvedValue([makeFlight(250)]);
+      mockGetRoutePriceHistory.mockResolvedValue([
+        [1716200000, 500],
+        [1716210000, 500],
+        [1716220000, 500],
+      ]);
+
+      const { runTracker } = await import("../services/tracker");
+      await runTracker();
+
+      expect(mockSendFlightAlert).toHaveBeenCalledWith(
+        expect.any(Object),
+        expect.any(Boolean),
+        expect.any(String),
+        true, // isPriceError
+        expect.objectContaining({ discountPct: 50, averagePrice: 500 })
+      );
+    });
+
+    it("detecta erro de tarifa com base no historico geral da rota quando data especifica tem <3 amostras", async () => {
+      // Data especifica tem apenas 1 amostra, mas histórico geral tem 3 amostras (média 600)
+      mockSearchWithApify.mockResolvedValue([makeFlight(300)]); // 50% queda
+      
+      // Chamada 1 para getRoutePriceHistory (data especifica) retorna 1 elemento
+      // Chamada 2 para getRoutePriceHistory (rota geral) retorna 3 elementos
+      mockGetRoutePriceHistory
+        .mockResolvedValueOnce([[1716200000, 600]]) // data especifica
+        .mockResolvedValueOnce([
+          [1716200000, 600],
+          [1716210000, 600],
+          [1716220000, 600],
+        ]); // rota geral
+
+      const { runTracker } = await import("../services/tracker");
+      await runTracker();
+
+      expect(mockSendFlightAlert).toHaveBeenCalledWith(
+        expect.any(Object),
+        expect.any(Boolean),
+        expect.any(String),
+        true, // isPriceError
+        expect.objectContaining({ discountPct: 50, averagePrice: 600 })
+      );
+    });
+
+    it("ignora deteccao de erro se amostragem total for <3", async () => {
+      mockSearchWithApify.mockResolvedValue([makeFlight(150)]); // queda de 70% em relacao a media 500
+      mockGetRoutePriceHistory.mockResolvedValue([
+        [1716200000, 500],
+        [1716210000, 500],
+      ]); // Apenas 2 registros no total
+
+      const { runTracker } = await import("../services/tracker");
+      await runTracker();
+
+      // Alerta padrao ainda enviado porque 150 <= maxPriceBRL (300)
+      expect(mockSendFlightAlert).toHaveBeenCalledWith(
+        expect.any(Object),
+        expect.any(Boolean),
+        expect.any(String),
+        false, // isPriceError deve ser false!
+        undefined
+      );
+    });
+
+    it("envia alerta de erro mesmo se o preco estiver acima do maxPriceBRL do usuario", async () => {
+      // Preço atual de 400 (queda de 60% vs média de 1000), o que é acima do maxPriceBRL (300)
+      mockSearchWithApify.mockResolvedValue([makeFlight(400)]);
+      mockGetRoutePriceHistory.mockResolvedValue([
+        [1716200000, 1000],
+        [1716210000, 1000],
+        [1716220000, 1000],
+      ]);
+
+      const { runTracker } = await import("../services/tracker");
+      await runTracker();
+
+      expect(mockSendFlightAlert).toHaveBeenCalledWith(
+        expect.any(Object),
+        expect.any(Boolean),
+        expect.any(String),
+        true, // isPriceError
+        expect.objectContaining({ discountPct: 60, averagePrice: 1000 })
+      );
+    });
+
+    it("respeita anti-spam para erros de tarifa ja enviados", async () => {
+      // Preço de 250 (erro de tarifa vs media 500), mas lastPrice é 250 (já enviado)
+      mockSearchWithApify.mockResolvedValue([makeFlight(250)]);
+      mockGetLastCheapestPrice.mockResolvedValue(250);
+      mockGetRoutePriceHistory.mockResolvedValue([
+        [1716200000, 500],
+        [1716210000, 500],
+        [1716220000, 500],
+      ]);
+
+      const { runTracker } = await import("../services/tracker");
+      await runTracker();
+
+      expect(mockSendFlightAlert).not.toHaveBeenCalled();
+    });
   });
 });

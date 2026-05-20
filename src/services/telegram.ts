@@ -24,10 +24,21 @@ export async function sendHealthCheck(targetChatId?: string | number): Promise<v
 }
 
 /** Alerta de uma passagem específica encontrada */
-export async function sendFlightAlert(flight: Flight, isHistoricLow = false, targetChatId?: string | number): Promise<void> {
-  const emoji = isHistoricLow ? "🔥" : "✈️";
-  const title = isHistoricLow ? "*Nível de preço histórico BAIXO!*" : "*Passagem barata encontrada!*";
+export async function sendFlightAlert(
+  flight: Flight,
+  isHistoricLow = false,
+  targetChatId?: string | number,
+  isPriceError = false,
+  priceErrorDetails?: { discountPct: number; averagePrice: number }
+): Promise<void> {
+  let emoji = isHistoricLow ? "🔥" : "✈️";
+  let title = isHistoricLow ? "*Nível de preço histórico BAIXO!*" : "*Passagem barata encontrada!*";
   
+  if (isPriceError) {
+    emoji = "🚨";
+    title = "*URGENTE: POSSÍVEL ERRO DE TARIFA!*";
+  }
+
   const lines = [
     `${emoji} ${title}`,
     "",
@@ -36,8 +47,12 @@ export async function sendFlightAlert(flight: Flight, isHistoricLow = false, tar
     `📅 Ida: ${flight.departureDate}`,
     flight.returnDate ? `📅 Volta: ${flight.returnDate}` : "",
     flight.airline ? `🏢 ${flight.airline}` : "",
-    `💰 *${formatBRL(flight.priceBRL)}*`,
+    isPriceError && priceErrorDetails
+      ? `💰 *${formatBRL(flight.priceBRL)}* (📉 *-${priceErrorDetails.discountPct.toFixed(0)}%* em relação à média recente de ${formatBRL(priceErrorDetails.averagePrice)})`
+      : `💰 *${formatBRL(flight.priceBRL)}*`,
     "",
+    isPriceError ? "⚠️ *Atenção:* Tarifas com erro podem ser canceladas pelas companhias ou se esgotam em minutos. Compre o mais rápido possível!" : "",
+    isPriceError ? "" : "", // adiciona espaçamento no erro
     `🔗 [Ver passagem](${flight.link})`,
     `_Fonte: ${flight.source}_`,
   ].filter(Boolean);

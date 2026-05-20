@@ -3,7 +3,7 @@ import { Flight, SearchParams } from "../types";
 import { searchWithApify } from "../apis/apify";
 import { searchWithRapidAPI } from "../apis/rapidapi";
 import { sendFlightAlert, sendDateRangeSummary, sendErrorAlert } from "./telegram";
-import { appendHistory, getLastCheapestPrice } from "./history";
+import { appendHistory, getLastCheapestPrice, getRoutePriceHistory } from "./history";
 import { withRetry } from "../utils/retry";
 import { getAllActiveAlerts, UserAlert, deactivateAlert } from "./user";
 import { formatBRL, getUSDtoBRL } from "./currency";
@@ -93,6 +93,39 @@ async function processAlert(alert: UserAlert): Promise<void> {
     ? await getLastCheapestPrice(alert.origin, alert.destination, alert.departure_date)
     : null;
 
+  // Detector de erro de tarifa (Price Glitch Detector)
+  let isPriceError = false;
+  let priceErrorDetails: { discountPct: number; averagePrice: number } | undefined = undefined;
+
+  if (currentCheapest !== null) {
+    // 1. Busca histórico filtrado por data de partida específica
+    let priceData = await getRoutePriceHistory(alert.origin, alert.destination, alert.departure_date);
+    let isSpecificDateUsed = true;
+
+    // 2. Se houver menos de 3 registros para aquela data, usa o histórico geral da rota
+    if (priceData.length < 3) {
+      priceData = await getRoutePriceHistory(alert.origin, alert.destination);
+      isSpecificDateUsed = false;
+    }
+
+    // 3. Se tiver amostragem suficiente (>= 3 registros)
+    if (priceData.length >= 3) {
+      const prices = priceData.map(([, price]) => price);
+      const avgPrice = prices.reduce((sum, p) => sum + p, 0) / prices.length;
+      const thresholdPrice = avgPrice * (1 - config.search.priceErrorThreshold);
+
+      if (currentCheapest <= thresholdPrice) {
+        isPriceError = true;
+        const discountPct = ((avgPrice - currentCheapest) / avgPrice) * 100;
+        priceErrorDetails = {
+          discountPct,
+          averagePrice: avgPrice
+        };
+        console.log(`[tracker] 🚨 POSSÍVEL ERRO DE TARIFA DETECTADO: ${route} em ${alert.departure_date}! Preço atual: ${currentCheapest} | Média (${isSpecificDateUsed ? "data" : "geral"}): ${avgPrice.toFixed(2)} | Queda: -${discountPct.toFixed(1)}%`);
+      }
+    }
+  }
+
   await appendHistory({
     timestamp: new Date().toISOString(),
     origin: alert.origin,
@@ -110,27 +143,27 @@ async function processAlert(alert: UserAlert): Promise<void> {
     }))
   });
 
-  if (currentCheapest && currentCheapest <= alert.max_price_brl) {
-    // Se o preço não caiu pelo menos 5%, a gente pula para não encher o saco do usuário
-    // Exceto se for a primeira vez (lastPrice === null)
-    if (!lastPrice || currentCheapest <= lastPrice * config.search.priceDropThreshold) {
-      const bestFlight = flights.sort((a,b) => a.priceBRL - b.priceBRL)[0];
+  const isWithinUserThreshold = currentCheapest !== null && currentCheapest <= alert.max_price_brl;
+  const isSignificantDrop = !lastPrice || (currentCheapest !== null && currentCheapest <= lastPrice * config.search.priceDropThreshold);
+  const isNewPriceError = isPriceError && (!lastPrice || (currentCheapest !== null && currentCheapest < lastPrice));
 
-      // Detecta se o preço está em nível histórico baixo usando dados do Google Flights (Apify)
-      let isHistoricLow = false;
-      const insights = bestFlight.priceInsights;
-      if (insights) {
-        if (insights.priceLevel === "low") {
-          isHistoricLow = true;
-        } else if (insights.lowestPrice) {
-          // Compara com o menor preço histórico (convertido para BRL com margem de 5%)
-          const usdToBRL = await getUSDtoBRL();
-          isHistoricLow = bestFlight.priceBRL <= insights.lowestPrice * usdToBRL * 1.05;
-        }
+  if ((isWithinUserThreshold && isSignificantDrop) || isNewPriceError) {
+    const bestFlight = flights.sort((a,b) => a.priceBRL - b.priceBRL)[0];
+
+    // Detecta se o preço está em nível histórico baixo usando dados do Google Flights (Apify)
+    let isHistoricLow = false;
+    const insights = bestFlight.priceInsights;
+    if (insights) {
+      if (insights.priceLevel === "low") {
+        isHistoricLow = true;
+      } else if (insights.lowestPrice) {
+        // Compara com o menor preço histórico (convertido para BRL com margem de 5%)
+        const usdToBRL = await getUSDtoBRL();
+        isHistoricLow = bestFlight.priceBRL <= insights.lowestPrice * usdToBRL * 1.05;
       }
-
-      await sendFlightAlert(bestFlight, isHistoricLow, alert.chat_id);
     }
+
+    await sendFlightAlert(bestFlight, isHistoricLow, alert.chat_id, isPriceError, priceErrorDetails);
   }
 }
 

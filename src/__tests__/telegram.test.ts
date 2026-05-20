@@ -64,6 +64,20 @@ describe("sendFlightAlert", () => {
     expect(text).toContain("🔥");
     expect(text).toContain("histórico BAIXO");
   });
+
+  it("exibe header de erro de tarifa e detalhes quando isPriceError=true", async () => {
+    mock.onPost(/sendMessage/).reply(200, { ok: true });
+
+    const { sendFlightAlert } = await import("../services/telegram");
+    await sendFlightAlert(baseFlight, false, undefined, true, { discountPct: 55.4, averagePrice: 550 });
+
+    const { text } = JSON.parse(mock.history.post[0].data);
+    expect(text).toContain("🚨");
+    expect(text).toContain("POSSÍVEL ERRO DE TARIFA");
+    expect(text).toContain("-55%");
+    expect(text).toContain("550");
+    expect(text).toContain("Tarifas com erro podem ser canceladas");
+  });
 });
 
 describe("sendSummary", () => {
