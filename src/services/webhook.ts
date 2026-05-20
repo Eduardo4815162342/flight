@@ -1,10 +1,13 @@
 import http from "http";
 import axios from "axios";
+import crypto from "crypto";
+import fs from "fs";
+import path from "path";
 import { config } from "../config";
 import { formatBRL } from "./currency";
 import * as userService from "./user";
 import { getDb } from "./db";
-import { getRoutePriceHistory, getRouteLowestPrice, getLatestDepartureDate } from "./history";
+import { getRoutePriceHistory, getRouteLowestPrice, getLatestDepartureDate, getFullHistory } from "./history";
 import { calcTrend, bestDayOfWeek } from "../utils/priceHistory";
 import { answerTravelQuestion } from "./aiConcierge";
 import { canAskAI, recordAIQuery } from "./aiUsage";
@@ -804,51 +807,449 @@ export async function handleUpdate(update: TelegramUpdate): Promise<void> {
 
 // ── Servidor HTTP ───────────────────────────────────────────────────────────
 
-export function startWebhookServer(): void {
+export let botUsername = "";
+
+export async function fetchBotUsername(): Promise<string> {
+  if (botUsername) return botUsername;
+  try {
+    const res = await axios.get<{ ok: boolean; result: { username: string } }>(`${BASE_URL}/getMe`);
+    if (res.data?.ok && res.data?.result?.username) {
+      botUsername = res.data.result.username;
+      console.log(`[webhook] Bot username carregado: @${botUsername}`);
+    }
+  } catch (err) {
+    console.error("[webhook] Erro ao carregar username do bot:", err instanceof Error ? err.message : err);
+  }
+  return botUsername;
+}
+
+export function verifyTelegramHash(params: Record<string, string>, botToken: string): boolean {
+  if (!params.hash) return false;
+  const hash = params.hash;
+  const data = { ...params };
+  delete data.hash;
+
+  const dataCheckString = Object.keys(data)
+    .sort()
+    .map((key) => `${key}=${data[key]}`)
+    .join("\n");
+
+  const secretKey = crypto.createHash("sha256").update(botToken).digest();
+  const calculatedHash = crypto.createHmac("sha256", secretKey).update(dataCheckString).digest("hex");
+
+  return calculatedHash === hash;
+}
+
+export function createSessionToken(id: string, firstName: string, username: string, botToken: string): string {
+  const timestamp = Date.now().toString();
+  const rawData = [id, firstName, username, timestamp].map(encodeURIComponent).join(":");
+  const hmac = crypto.createHmac("sha256", botToken).update(rawData).digest("hex");
+  return `${rawData}:${hmac}`;
+}
+
+export function verifySessionToken(token: string, botToken: string): { id: string; firstName: string; username: string } | null {
+  try {
+    const parts = token.split(":");
+    if (parts.length !== 5) return null;
+    const [id, firstName, username, timestamp, signature] = parts;
+    const rawData = [id, firstName, username, timestamp].join(":");
+    const expectedHmac = crypto.createHmac("sha256", botToken).update(rawData).digest("hex");
+    if (signature !== expectedHmac) return null;
+
+    const age = Date.now() - Number(timestamp);
+    if (age > 30 * 24 * 60 * 60 * 1000) return null;
+
+    return {
+      id: decodeURIComponent(id),
+      firstName: decodeURIComponent(firstName),
+      username: decodeURIComponent(username),
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function parseCookies(cookieHeader: string | undefined): Record<string, string> {
+  if (!cookieHeader) return {};
+  return cookieHeader.split(";").reduce((acc, cookie) => {
+    const [key, ...value] = cookie.trim().split("=");
+    if (key) acc[key.trim()] = value.join("=").trim();
+    return acc;
+  }, {} as Record<string, string>);
+}
+
+export function startWebhookServer(): http.Server {
+  // Busca o username do bot em segundo plano
+  fetchBotUsername().catch(console.error);
+
   const server = http.createServer((req, res) => {
-    // Health checks do Railway (GET) não têm body — responde e ignora
-    if (req.method !== "POST") {
-      res.writeHead(200);
-      res.end("OK");
+    const urlObj = new URL(req.url ?? "", `http://${req.headers.host || "localhost"}`);
+    const pathname = urlObj.pathname;
+    const method = req.method;
+
+    const sendJSON = (statusCode: number, data: any, extraHeaders: Record<string, string> = {}) => {
+      res.writeHead(statusCode, { "Content-Type": "application/json", ...extraHeaders });
+      res.end(JSON.stringify(data));
+    };
+
+    // ── ENDPOINTS DE API ──
+
+    if (method === "GET" && pathname === "/api/stats") {
+      (async () => {
+        try {
+          const db = getDb();
+          
+          const historyCountRes = await db.execute("SELECT COUNT(*) as n FROM history");
+          const totalChecks = Number(historyCountRes.rows[0]?.n ?? 0);
+
+          const lowestPriceRes = await db.execute("SELECT MIN(cheapestPriceBRL) as minPrice FROM history WHERE cheapestPriceBRL IS NOT NULL");
+          const lowestPrice = lowestPriceRes.rows[0]?.minPrice !== null && lowestPriceRes.rows[0]?.minPrice !== undefined ? Number(lowestPriceRes.rows[0].minPrice) : null;
+
+          const routesCountRes = await db.execute("SELECT COUNT(DISTINCT(origin || '->' || destination)) as n FROM history");
+          const routesCount = Number(routesCountRes.rows[0]?.n ?? 0);
+
+          const activeUsersCountRes = await db.execute("SELECT COUNT(*) as n FROM users WHERE is_authorized = 1");
+          const activeUsersCount = Number(activeUsersCountRes.rows[0]?.n ?? 0);
+
+          const currentBotUser = await fetchBotUsername();
+          const lastUpdate = new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
+
+          sendJSON(200, {
+            ok: true,
+            totalChecks,
+            lowestPrice,
+            routesCount,
+            activeUsersCount,
+            botUsername: currentBotUser,
+            lastUpdate
+          });
+        } catch (err) {
+          console.error("[api] Erro ao buscar stats:", err);
+          sendJSON(500, { ok: false, message: "Erro interno ao buscar estatísticas." });
+        }
+      })();
       return;
     }
 
-    let body = "";
-    req.on("data", (chunk) => (body += chunk.toString()));
-    req.on("end", () => {
-      if (req.url?.startsWith("/webhooks/cakto")) {
-        (async () => {
-          const { handleCaktoWebhook } = await import("./caktoWebhook");
-          const result = await handleCaktoWebhook(body, req.headers, req.url);
-          res.writeHead(result.statusCode, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ ok: result.ok, message: result.message }));
-        })().catch((err) => {
-          console.error("[webhook] Erro ao processar webhook Cakto:", err instanceof Error ? err.message : err);
-          res.writeHead(500, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ ok: false, message: "internal_error" }));
-        });
+    if (method === "GET" && pathname === "/api/history") {
+      (async () => {
+        try {
+          const history = await getFullHistory();
+          sendJSON(200, { ok: true, history });
+        } catch (err) {
+          console.error("[api] Erro ao buscar histórico:", err);
+          sendJSON(500, { ok: false, message: "Erro interno ao buscar histórico." });
+        }
+      })();
+      return;
+    }
+
+    if (method === "GET" && pathname === "/api/auth/telegram") {
+      const params: Record<string, string> = {};
+      urlObj.searchParams.forEach((val, key) => {
+        params[key] = val;
+      });
+
+      if (!verifyTelegramHash(params, config.telegram.botToken)) {
+        res.writeHead(302, { "Location": "/dashboard?auth_error=signature" });
+        res.end();
         return;
       }
 
-      // Responde 200 imediatamente para o Telegram não reenviar por timeout
-      res.writeHead(200);
-      res.end("OK");
+      const authDate = Number(params.auth_date);
+      if (isNaN(authDate) || Date.now() / 1000 - authDate > 86400) {
+        res.writeHead(302, { "Location": "/dashboard?auth_error=expired" });
+        res.end();
+        return;
+      }
 
-      if (!body) return;
+      const sessionToken = createSessionToken(
+        params.id,
+        params.first_name || "",
+        params.username || "",
+        config.telegram.botToken
+      );
 
-      // Processa de forma assíncrona após responder
+      const cookieVal = `session=${sessionToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000`; // 30 dias
+      res.writeHead(302, {
+        "Set-Cookie": cookieVal,
+        "Location": "/dashboard"
+      });
+      res.end();
+      return;
+    }
+
+    if (method === "GET" && pathname === "/api/auth/logout") {
+      const cookieVal = `session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`;
+      sendJSON(200, { ok: true }, { "Set-Cookie": cookieVal });
+      return;
+    }
+
+    if (method === "GET" && pathname === "/api/alerts") {
       (async () => {
-        try {
-          const update: TelegramUpdate = JSON.parse(body);
-          await handleUpdate(update);
-        } catch (err) {
-          console.error("[webhook] Erro ao processar update:", err instanceof Error ? err.message : err);
+        const cookies = parseCookies(req.headers.cookie);
+        const session = cookies.session;
+        if (!session) {
+          sendJSON(401, { ok: false, message: "Não autorizado." });
+          return;
+        }
+
+        const user = verifySessionToken(session, config.telegram.botToken);
+        if (!user) {
+          sendJSON(401, { ok: false, message: "Sessão inválida." });
+          return;
+        }
+
+        const authorized = await userService.isUserAuthorized(user.id);
+        if (!authorized) {
+          sendJSON(403, { ok: false, message: "Não autorizado." });
+          return;
+        }
+
+        const alerts = await userService.listUserAlerts(user.id);
+        sendJSON(200, { ok: true, alerts, user });
+      })();
+      return;
+    }
+
+    if (method === "POST" && pathname === "/api/alerts") {
+      (async () => {
+        const cookies = parseCookies(req.headers.cookie);
+        const session = cookies.session;
+        if (!session) {
+          sendJSON(401, { ok: false, message: "Não autorizado." });
+          return;
+        }
+
+        const user = verifySessionToken(session, config.telegram.botToken);
+        if (!user) {
+          sendJSON(401, { ok: false, message: "Sessão inválida." });
+          return;
+        }
+
+        const authorized = await userService.isUserAuthorized(user.id);
+        if (!authorized) {
+          sendJSON(403, { ok: false, message: "Não autorizado." });
+          return;
+        }
+
+        let body = "";
+        req.on("data", (chunk) => (body += chunk.toString()));
+        req.on("end", () => {
+          (async () => {
+            try {
+              const payload = JSON.parse(body);
+              const { origin, destination, departureDate, returnDate, tripType, maxPriceBRL } = payload;
+
+              if (!origin || !destination || !departureDate || !tripType || isNaN(Number(maxPriceBRL))) {
+                sendJSON(400, { ok: false, message: "Campos obrigatórios ausentes ou inválidos." });
+                return;
+              }
+
+              const uOrigin = origin.toUpperCase();
+              const uDestination = destination.toUpperCase();
+              if (!/^[A-Z]{3}$/.test(uOrigin) || !/^[A-Z]{3}$/.test(uDestination)) {
+                sendJSON(400, { ok: false, message: "Origem e destino devem ser códigos de 3 letras." });
+                return;
+              }
+
+              if (uOrigin === uDestination) {
+                sendJSON(400, { ok: false, message: "Origem e destino devem ser diferentes." });
+                return;
+              }
+
+              const parsedPrice = Number(maxPriceBRL);
+              if (parsedPrice <= 0) {
+                sendJSON(400, { ok: false, message: "Preço máximo deve ser maior que zero." });
+                return;
+              }
+
+              const alertId = await userService.addAlert({
+                chat_id: user.id,
+                origin: uOrigin,
+                destination: uDestination,
+                departure_date: departureDate,
+                return_date: returnDate || undefined,
+                trip_type: tripType,
+                max_price_brl: parsedPrice,
+                is_active: true,
+              });
+
+              sendJSON(200, { ok: true, alertId, message: "Alerta criado com sucesso!" });
+            } catch {
+              sendJSON(400, { ok: false, message: "Corpo JSON inválido." });
+            }
+          })();
+        });
+      })();
+      return;
+    }
+
+    if (method === "POST" && pathname === "/api/alerts/update") {
+      (async () => {
+        const cookies = parseCookies(req.headers.cookie);
+        const session = cookies.session;
+        if (!session) {
+          sendJSON(401, { ok: false, message: "Não autorizado." });
+          return;
+        }
+
+        const user = verifySessionToken(session, config.telegram.botToken);
+        if (!user) {
+          sendJSON(401, { ok: false, message: "Sessão inválida." });
+          return;
+        }
+
+        const authorized = await userService.isUserAuthorized(user.id);
+        if (!authorized) {
+          sendJSON(403, { ok: false, message: "Não autorizado." });
+          return;
+        }
+
+        let body = "";
+        req.on("data", (chunk) => (body += chunk.toString()));
+        req.on("end", () => {
+          (async () => {
+            try {
+              const payload = JSON.parse(body);
+              const { id, maxPriceBRL } = payload;
+              const alertId = Number(id);
+              const newPrice = Number(maxPriceBRL);
+
+              if (isNaN(alertId) || isNaN(newPrice) || newPrice <= 0) {
+                sendJSON(400, { ok: false, message: "Parâmetros inválidos." });
+                return;
+              }
+
+              const success = await userService.updateAlertPrice(user.id, alertId, newPrice);
+              if (success) {
+                sendJSON(200, { ok: true, message: "Alerta atualizado com sucesso!" });
+              } else {
+                sendJSON(404, { ok: false, message: "Alerta não encontrado ou não pertence a você." });
+              }
+            } catch {
+              sendJSON(400, { ok: false, message: "Corpo JSON inválido." });
+            }
+          })();
+        });
+      })();
+      return;
+    }
+
+    if (method === "DELETE" && pathname === "/api/alerts") {
+      (async () => {
+        const cookies = parseCookies(req.headers.cookie);
+        const session = cookies.session;
+        if (!session) {
+          sendJSON(401, { ok: false, message: "Não autorizado." });
+          return;
+        }
+
+        const user = verifySessionToken(session, config.telegram.botToken);
+        if (!user) {
+          sendJSON(401, { ok: false, message: "Sessão inválida." });
+          return;
+        }
+
+        const authorized = await userService.isUserAuthorized(user.id);
+        if (!authorized) {
+          sendJSON(403, { ok: false, message: "Não autorizado." });
+          return;
+        }
+
+        const alertId = Number(urlObj.searchParams.get("id"));
+        if (isNaN(alertId) || alertId <= 0) {
+          sendJSON(400, { ok: false, message: "ID do alerta inválido." });
+          return;
+        }
+
+        const success = await userService.removeAlert(user.id, alertId);
+        if (success) {
+          sendJSON(200, { ok: true, message: "Alerta removido com sucesso." });
+        } else {
+          sendJSON(404, { ok: false, message: "Alerta não encontrado ou não pertence a você." });
         }
       })();
-    });
+      return;
+    }
+
+    // ── ARQUIVOS ESTÁTICOS ──
+
+    if (method === "GET" && pathname === "/") {
+      (async () => {
+        try {
+          const filePath = path.join(process.cwd(), "landing", "index.html");
+          const html = await fs.promises.readFile(filePath, "utf8");
+          res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+          res.end(html);
+        } catch {
+          res.writeHead(500);
+          res.end("Erro ao carregar a página principal.");
+        }
+      })();
+      return;
+    }
+
+    if (method === "GET" && pathname === "/dashboard") {
+      (async () => {
+        try {
+          const filePath = path.join(process.cwd(), "landing", "dashboard.html");
+          const html = await fs.promises.readFile(filePath, "utf8");
+          res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+          res.end(html);
+        } catch {
+          res.writeHead(500);
+          res.end("Erro ao carregar o dashboard.");
+        }
+      })();
+      return;
+    }
+
+    // ── WEBHOOK DO TELEGRAM (POST) & CAKTO ──
+
+    if (method === "POST") {
+      let body = "";
+      req.on("data", (chunk) => (body += chunk.toString()));
+      req.on("end", () => {
+        if (pathname.startsWith("/webhooks/cakto")) {
+          (async () => {
+            const { handleCaktoWebhook } = await import("./caktoWebhook");
+            const result = await handleCaktoWebhook(body, req.headers, req.url);
+            res.writeHead(result.statusCode, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ ok: result.ok, message: result.message }));
+          })().catch((err) => {
+            console.error("[webhook] Erro ao processar webhook Cakto:", err instanceof Error ? err.message : err);
+            res.writeHead(500, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ ok: false, message: "internal_error" }));
+          });
+          return;
+        }
+
+        res.writeHead(200);
+        res.end("OK");
+
+        if (!body) return;
+
+        (async () => {
+          try {
+            const update: TelegramUpdate = JSON.parse(body);
+            await handleUpdate(update);
+          } catch (err) {
+            console.error("[webhook] Erro ao processar update:", err instanceof Error ? err.message : err);
+          }
+        })();
+      });
+      return;
+    }
+
+    // Fallback
+    res.writeHead(404);
+    res.end("Not Found");
   });
 
   server.listen(WEBHOOK_PORT, () => {
     console.log(`[webhook] Servidor na porta ${WEBHOOK_PORT}`);
   });
+
+  return server;
 }

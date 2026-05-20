@@ -1,0 +1,1529 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BSB Price Track | SaaS Dashboard</title>
+    <meta name="description" content="Acompanhe histórico de preços e gerencie seus alertas em tempo real.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        :root {
+            --bg: #07090e;
+            --card: rgba(13, 17, 28, 0.75);
+            --card-hover: rgba(20, 26, 42, 0.85);
+            --border: rgba(255, 255, 255, 0.06);
+            --border-hover: rgba(255, 255, 255, 0.12);
+            --text: #f3f4f6;
+            --muted: #9ca3af;
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-glow: rgba(99, 102, 241, 0.18);
+            --green: #10b981;
+            --green-glow: rgba(16, 185, 129, 0.15);
+            --yellow: #f59e0b;
+            --red: #ef4444;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+            --shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--bg);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.04) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, .font-title {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        /* Glassmorphism utility */
+        .glass {
+            background: var(--card);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .glass:hover {
+            border-color: var(--border-hover);
+        }
+
+        /* Navigation */
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--border);
+            background: rgba(7, 9, 14, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .nav-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 20px;
+            color: var(--text);
+            text-decoration: none;
+        }
+
+        .brand i {
+            color: var(--primary);
+            font-size: 24px;
+            filter: drop-shadow(0 0 8px var(--primary));
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-info {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .user-handle {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 1px solid transparent;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px var(--primary-glow);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--border);
+            color: var(--text);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.2);
+            color: var(--red);
+        }
+
+        .btn-danger:hover {
+            background: var(--red);
+            color: white;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+        }
+
+        /* Layout Structure */
+        main {
+            flex: 1;
+            max-width: 1280px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+
+        /* ── TELA DE LOGIN ── */
+        .login-screen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - 180px);
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 460px;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .login-icon {
+            font-size: 48px;
+            color: var(--primary);
+            margin-bottom: 24px;
+            display: inline-block;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .login-card h2 {
+            font-size: 28px;
+            margin-bottom: 12px;
+        }
+
+        .login-card p {
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+
+        #telegram-widget-container {
+            display: flex;
+            justify-content: center;
+            min-height: 44px;
+        }
+
+        /* ── DASHBOARD PRINCIPAL ── */
+        .dashboard-layout {
+            display: none;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        /* Header Info */
+        .dash-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .dash-header h2 {
+            font-size: 32px;
+            background: linear-gradient(90deg, #a5b4fc, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .last-update-pill {
+            padding: 6px 12px;
+            background: rgba(99, 102, 241, 0.08);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            color: #818cf8;
+            font-size: 12px;
+            font-weight: 500;
+            border-radius: 100px;
+        }
+
+        /* Metrics Row */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .metric-card {
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .metric-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-md);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: var(--primary);
+            transition: var(--transition);
+        }
+
+        .metric-card:hover .metric-icon {
+            background: var(--primary-glow);
+            border-color: rgba(99, 102, 241, 0.3);
+            color: #818cf8;
+        }
+
+        .metric-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .metric-label {
+            font-size: 13px;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: 700;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .metric-value.highlight {
+            color: var(--green);
+        }
+
+        /* Analytics Section */
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: 2fr 1.2fr;
+            gap: 24px;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .panel-title {
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-title i {
+            color: var(--primary);
+        }
+
+        .select-route {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .select-route:hover {
+            border-color: var(--border-hover);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .chart-wrapper {
+            height: 320px;
+            position: relative;
+        }
+
+        /* Google Flights Typical Price Range Widget */
+        .range-widget {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .route-info-tag {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            font-family: 'Outfit', sans-serif;
+            text-align: center;
+        }
+
+        .price-status-text {
+            text-align: center;
+            font-size: 14px;
+            margin-bottom: 24px;
+            color: var(--muted);
+        }
+
+        .price-status-text span {
+            font-weight: 700;
+        }
+
+        .price-status-text .cheap { color: var(--green); }
+        .price-status-text .typical { color: var(--yellow); }
+        .price-status-text .expensive { color: var(--red); }
+
+        .range-bar-container {
+            position: relative;
+            padding: 24px 0 10px;
+            margin-bottom: 20px;
+        }
+
+        .range-bar {
+            height: 12px;
+            border-radius: 6px;
+            display: flex;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
+        }
+
+        .range-segment {
+            height: 100%;
+        }
+
+        .segment-cheap {
+            background: linear-gradient(90deg, #059669, var(--green));
+            flex: 1;
+        }
+
+        .segment-typical {
+            background: linear-gradient(90deg, #d97706, var(--yellow));
+            flex: 1.5;
+        }
+
+        .segment-expensive {
+            background: linear-gradient(90deg, #dc2626, var(--red));
+            flex: 1;
+        }
+
+        .range-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--muted);
+            font-weight: 600;
+            margin-top: 8px;
+            padding: 0 4px;
+        }
+
+        .range-pointer {
+            position: absolute;
+            top: 2px;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: left 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .pointer-bubble {
+            background: var(--text);
+            color: var(--bg);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 6px;
+            border-radius: var(--radius-sm);
+            white-space: nowrap;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            margin-bottom: 2px;
+        }
+
+        .pointer-arrow {
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 6px solid var(--text);
+        }
+
+        /* Alerts & Form Section */
+        .alerts-grid {
+            display: grid;
+            grid-template-columns: 2.2fr 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        .alerts-wrapper {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            max-height: 520px;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+
+        .alerts-wrapper::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .alerts-wrapper::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+
+        .no-alerts {
+            grid-column: span 2;
+            padding: 60px;
+            text-align: center;
+            color: var(--muted);
+        }
+
+        .no-alerts i {
+            font-size: 40px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        /* Alert Card */
+        .alert-card {
+            padding: 20px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            overflow: hidden;
+            animation: cardEnter 0.3s ease-out;
+        }
+
+        @keyframes cardEnter {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .alert-card.removing {
+            animation: cardLeave 0.3s ease-in forwards;
+        }
+
+        @keyframes cardLeave {
+            to { opacity: 0; transform: scale(0.95); max-height: 0; padding: 0; margin: 0; border: none; }
+        }
+
+        .alert-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .alert-route {
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .alert-route i {
+            color: var(--primary);
+            font-size: 14px;
+        }
+
+        .alert-type {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+
+        .alert-dates {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .alert-date-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .alert-date-item i {
+            font-size: 14px;
+        }
+
+        .alert-price-section {
+            border-top: 1px solid var(--border);
+            padding-top: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .alert-price-label {
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        .alert-price-edit-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .alert-price-input {
+            width: 90px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 6px 10px;
+            border-radius: var(--radius-sm);
+            font-weight: 700;
+            font-size: 14px;
+            text-align: right;
+            transition: var(--transition);
+        }
+
+        .alert-price-input:focus {
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .btn-mini-save {
+            background: var(--green);
+            color: white;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            opacity: 0.7;
+        }
+
+        .btn-mini-save:hover {
+            opacity: 1;
+            transform: scale(1.05);
+        }
+
+        .alert-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 4px;
+        }
+
+        /* Alerta Form */
+        .alert-form {
+            padding: 28px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        label {
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        select {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 10px 14px;
+            color: var(--text);
+            font-size: 14px;
+            width: 100%;
+            transition: var(--transition);
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.06);
+            box-shadow: 0 0 8px rgba(99, 102, 241, 0.2);
+        }
+
+        .trip-type-toggle {
+            display: flex;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.02);
+            margin-bottom: 8px;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--muted);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .toggle-btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 2px 6px rgba(99, 102, 241, 0.2);
+        }
+
+        .form-message {
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            display: none;
+            margin-top: 12px;
+            line-height: 1.4;
+        }
+
+        .form-message.success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: var(--green);
+            display: block;
+        }
+
+        .form-message.error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: var(--red);
+            display: block;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: auto;
+            border-top: 1px solid var(--border);
+            padding: 24px;
+            text-align: center;
+            font-size: 13px;
+            color: var(--muted);
+            background: rgba(7, 9, 14, 0.8);
+        }
+
+        /* Responsive Layout */
+        @media (max-width: 968px) {
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .analytics-grid, .alerts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 580px) {
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            .alerts-wrapper {
+                grid-template-columns: 1fr;
+            }
+            .nav-container {
+                flex-direction: column;
+                gap: 16px;
+            }
+            .user-profile {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAV BAR -->
+    <nav>
+        <div class="nav-container">
+            <a class="brand" href="/dashboard">
+                <i class="ph-fill ph-airplane-tilt"></i>
+                <span>BSB Price Track <small style="font-size:10px; color:var(--primary); font-weight:700;">SAAS</small></span>
+            </a>
+            
+            <div class="user-profile" id="user-profile-nav" style="display:none;">
+                <div class="user-info">
+                    <span class="user-name" id="user-display-name">Nome</span>
+                    <span class="user-handle" id="user-display-handle">@username</span>
+                </div>
+                <button class="btn btn-secondary" onclick="logout()">
+                    <i class="ph-bold ph-sign-out"></i> Sair
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- CONTENT -->
+    <main>
+        
+        <!-- TELA DE LOGIN (se deslogado) -->
+        <section class="login-screen" id="login-screen-view">
+            <div class="login-card glass">
+                <i class="ph-bold ph-lock-keyhole login-icon"></i>
+                <h2>Bem-vindo de volta</h2>
+                <p>Use o widget seguro do Telegram para entrar no seu painel privado, monitorar preços e gerenciar alertas de passagens.</p>
+                <div id="telegram-widget-container">
+                    <!-- Telegram Widget injetado dinamicamente -->
+                    <div style="font-size: 14px; color: var(--muted); font-weight: 500;">
+                        <i class="ph-bold ph-spinner-gap" style="animation: spin 1s linear infinite; display: inline-block;"></i> Carregando acesso...
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DASHBOARD (se logado) -->
+        <section class="dashboard-layout" id="dashboard-screen-view">
+            
+            <!-- Header -->
+            <div class="dash-header">
+                <div>
+                    <h2>Painel do Rastreador</h2>
+                    <p style="color: var(--muted); margin: 4px 0 0; font-size: 14px;">Visão analítica e controle de alertas ativos.</p>
+                </div>
+                <div class="last-update-pill" id="stats-last-update">
+                    Atualizado: --:--:--
+                </div>
+            </div>
+
+            <!-- Metrics Row -->
+            <div class="metrics-grid">
+                <div class="metric-card glass">
+                    <div class="metric-icon"><i class="ph-bold ph-magnifying-glass"></i></div>
+                    <div class="metric-info">
+                        <span class="metric-label">Total de Buscas</span>
+                        <span class="metric-value" id="stats-total-checks">0</span>
+                    </div>
+                </div>
+                
+                <div class="metric-card glass">
+                    <div class="metric-icon"><i class="ph-bold ph-trend-down"></i></div>
+                    <div class="metric-info">
+                        <span class="metric-label">Menor Preço</span>
+                        <span class="metric-value highlight" id="stats-lowest-price">R$ 0,00</span>
+                    </div>
+                </div>
+
+                <div class="metric-card glass">
+                    <div class="metric-icon"><i class="ph-bold ph-navigation-arrow"></i></div>
+                    <div class="metric-info">
+                        <span class="metric-label">Rotas Ativas</span>
+                        <span class="metric-value" id="stats-routes-count">0</span>
+                    </div>
+                </div>
+
+                <div class="metric-card glass">
+                    <div class="metric-icon"><i class="ph-bold ph-users-three"></i></div>
+                    <div class="metric-info">
+                        <span class="metric-label">Usuários Ativos</span>
+                        <span class="metric-value" id="stats-users-count">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Row -->
+            <div class="analytics-grid">
+                <!-- Evolution Graph -->
+                <div class="glass p-6" style="padding: 24px;">
+                    <div class="panel-header">
+                        <h3 class="panel-title"><i class="ph-bold ph-chart-line"></i> Evolução das Tarifas</h3>
+                        <select class="select-route" id="chart-route-filter" onchange="updateChartRoute()">
+                            <option value="">Todas as Rotas</option>
+                        </select>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="priceChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Google Flights Price Range Visualizer -->
+                <div class="glass" style="padding: 24px;">
+                    <div class="panel-header">
+                        <h3 class="panel-title"><i class="ph-bold ph-gauge"></i> Preço vs. Faixa Típica</h3>
+                    </div>
+                    <div class="range-widget">
+                        <div class="route-info-tag" id="range-route-label">---</div>
+                        <div class="price-status-text" id="range-status-text">Sem dados de preço para exibir.</div>
+                        
+                        <div class="range-bar-container">
+                            <div class="range-pointer" id="range-pointer" style="left: 50%; opacity: 0;">
+                                <div class="pointer-bubble" id="range-pointer-val">R$ 0</div>
+                                <div class="pointer-arrow"></div>
+                            </div>
+                            
+                            <div class="range-bar">
+                                <div class="range-segment segment-cheap" title="Preço Barato"></div>
+                                <div class="range-segment segment-typical" title="Preço Típico"></div>
+                                <div class="range-segment segment-expensive" title="Preço Alto"></div>
+                            </div>
+                            
+                            <div class="range-labels">
+                                <span id="range-lbl-min">Min</span>
+                                <span id="range-lbl-max">Max</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alerts Row -->
+            <div class="alerts-grid">
+                
+                <!-- Alerts list -->
+                <div class="glass" style="padding: 24px;">
+                    <div class="panel-header">
+                        <h3 class="panel-title"><i class="ph-bold ph-bell-ringing"></i> Meus Alertas de Preço</h3>
+                    </div>
+                    
+                    <div class="alerts-wrapper" id="alerts-cards-list">
+                        <!-- Alertas populados via API -->
+                    </div>
+                </div>
+
+                <!-- New Alert Form -->
+                <div class="glass alert-form">
+                    <h3 class="panel-title" style="margin-bottom: 24px;"><i class="ph-bold ph-plus-circle"></i> Criar Novo Alerta</h3>
+                    
+                    <form id="new-alert-form" onsubmit="createNewAlert(event)">
+                        
+                        <div class="trip-type-toggle">
+                            <div class="toggle-btn active" id="toggle-one-way" onclick="setTripType('one-way')">Só Ida</div>
+                            <div class="toggle-btn" id="toggle-round-trip" onclick="setTripType('round-trip')">Ida e Volta</div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="form-origin">Origem</label>
+                                <input type="text" id="form-origin" placeholder="Ex: BSB" required maxlength="3" oninput="this.value = this.value.toUpperCase()">
+                            </div>
+                            <div class="form-group">
+                                <label for="form-destination">Destino</label>
+                                <input type="text" id="form-destination" placeholder="Ex: GRU" required maxlength="3" oninput="this.value = this.value.toUpperCase()">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="form-departure">Ida</label>
+                                <input type="date" id="form-departure" required>
+                            </div>
+                            <div class="form-group" id="form-return-group" style="opacity: 0.4; pointer-events: none;">
+                                <label for="form-return">Volta</label>
+                                <input type="date" id="form-return">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="form-max-price">Preço Limite (R$)</label>
+                            <input type="number" id="form-max-price" placeholder="Ex: 350" required min="1">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; margin-top: 8px;">
+                            <i class="ph-bold ph-bell-ringing"></i> Ativar Monitoramento
+                        </button>
+
+                        <div class="form-message" id="form-feedback"></div>
+                    </form>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-container">
+            <p>BSB Price Track &copy; 2026 | Desenvolvido com Estética Premium & Tecnologia de Alta Performance</p>
+        </div>
+    </footer>
+
+    <!-- LOGIC & SCRIPTS -->
+    <script>
+        let currentUser = null;
+        let globalHistory = [];
+        let priceEvolutionChart = null;
+        let selectedTripType = 'one-way';
+
+        // Inicializador ao carregar a página
+        window.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            loadStats();
+        });
+
+        // Toggle Trip Type (Só Ida / Ida e Volta)
+        function setTripType(type) {
+            selectedTripType = type;
+            const oneWayBtn = document.getElementById('toggle-one-way');
+            const roundTripBtn = document.getElementById('toggle-round-trip');
+            const returnGroup = document.getElementById('form-return-group');
+            const returnInput = document.getElementById('form-return');
+
+            if (type === 'one-way') {
+                oneWayBtn.classList.add('active');
+                roundTripBtn.classList.remove('active');
+                returnGroup.style.opacity = '0.4';
+                returnGroup.style.pointerEvents = 'none';
+                returnInput.required = false;
+                returnInput.value = '';
+            } else {
+                oneWayBtn.classList.remove('active');
+                roundTripBtn.classList.add('active');
+                returnGroup.style.opacity = '1';
+                returnGroup.style.pointerEvents = 'all';
+                returnInput.required = true;
+            }
+        }
+
+        // Verifica se usuário está autenticado
+        async function checkAuth() {
+            try {
+                const res = await fetch('/api/alerts');
+                if (res.status === 200) {
+                    const data = await res.json();
+                    currentUser = data.user;
+                    
+                    // Mostra o dashboard
+                    document.getElementById('login-screen-view').style.display = 'none';
+                    document.getElementById('dashboard-screen-view').style.display = 'flex';
+                    
+                    // Atualiza perfil no menu
+                    document.getElementById('user-display-name').textContent = currentUser.firstName || 'Membro';
+                    document.getElementById('user-display-handle').textContent = currentUser.username ? '@' + currentUser.username : 'Sem username';
+                    document.getElementById('user-profile-nav').style.display = 'flex';
+                    
+                    // Popula alertas e gráficos
+                    populateAlerts(data.alerts);
+                    loadHistory();
+                } else {
+                    showLoginScreen();
+                }
+            } catch (err) {
+                console.error("Erro no checkAuth:", err);
+                showLoginScreen();
+            }
+        }
+
+        // Mostra tela de login com o widget do Telegram
+        async function showLoginScreen() {
+            document.getElementById('login-screen-view').style.display = 'flex';
+            document.getElementById('dashboard-screen-view').style.display = 'none';
+            document.getElementById('user-profile-nav').style.display = 'none';
+            
+            try {
+                const statsRes = await fetch('/api/stats');
+                const stats = await statsRes.json();
+                const botUsername = stats.botUsername || "bsb_price_track_bot";
+
+                const container = document.getElementById('telegram-widget-container');
+                container.innerHTML = '';
+                
+                const script = document.createElement('script');
+                script.async = true;
+                script.src = "https://telegram.org/js/telegram-widget.js?22";
+                script.setAttribute('data-telegram-login', botUsername);
+                script.setAttribute('data-size', 'large');
+                script.setAttribute('data-radius', '12');
+                script.setAttribute('data-auth-url', window.location.origin + '/api/auth/telegram');
+                script.setAttribute('data-request-access', 'write');
+                
+                container.appendChild(script);
+            } catch (err) {
+                console.error("Erro ao injetar widget do Telegram:", err);
+            }
+        }
+
+        // Efetua Logout
+        async function logout() {
+            await fetch('/api/auth/logout');
+            window.location.reload();
+        }
+
+        // Carrega as estatísticas do servidor
+        async function loadStats() {
+            try {
+                const res = await fetch('/api/stats');
+                if (res.ok) {
+                    const stats = await res.json();
+                    document.getElementById('stats-total-checks').textContent = stats.totalChecks.toLocaleString();
+                    document.getElementById('stats-lowest-price').textContent = stats.lowestPrice 
+                        ? 'R$ ' + stats.lowestPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })
+                        : 'R$ ---';
+                    document.getElementById('stats-routes-count').textContent = stats.routesCount;
+                    document.getElementById('stats-users-count').textContent = stats.activeUsersCount;
+                    document.getElementById('stats-last-update').textContent = 'Atualizado: ' + stats.lastUpdate;
+                }
+            } catch (err) {
+                console.error("Erro ao carregar estatísticas:", err);
+            }
+        }
+
+        // Carrega o histórico completo de preços
+        async function loadHistory() {
+            try {
+                const res = await fetch('/api/history');
+                if (res.ok) {
+                    const data = await res.json();
+                    globalHistory = data.history || [];
+                    
+                    // Configura os filtros e renderiza o gráfico
+                    populateHistoryFilters();
+                    renderChart();
+                }
+            } catch (err) {
+                console.error("Erro ao carregar histórico:", err);
+            }
+        }
+
+        // Popula o seletor de rotas
+        function populateHistoryFilters() {
+            const routes = Array.from(new Set(globalHistory.map(h => `${h.origin}→${h.destination}`)));
+            const filter = document.getElementById('chart-route-filter');
+            
+            // Limpa as opções extras mantendo a primeira
+            filter.innerHTML = '<option value="">Todas as Rotas</option>';
+            
+            routes.forEach(route => {
+                const opt = document.createElement('option');
+                opt.value = route;
+                opt.textContent = route;
+                filter.appendChild(opt);
+            });
+        }
+
+        // Renderiza o gráfico de evolução
+        function renderChart(selectedRoute = '') {
+            const canvas = document.getElementById('priceChart');
+            if (!canvas) return;
+
+            let filteredData = globalHistory;
+            if (selectedRoute) {
+                filteredData = globalHistory.filter(h => `${h.origin}→${h.destination}` === selectedRoute);
+            }
+
+            // Agrupa timestamps únicos (dos últimos 30 dias para não sobrecarregar visualmente)
+            const days = Array.from(new Set(filteredData.map(h => h.timestamp.split('T')[0]))).slice(-30);
+            const routes = Array.from(new Set(filteredData.map(h => `${h.origin}→${h.destination}`)));
+
+            // Prepara datasets
+            const datasets = routes.map((route, idx) => {
+                const colors = [
+                    { border: '#6366f1', bg: 'rgba(99, 102, 241, 0.05)' },
+                    { border: '#10b981', bg: 'rgba(16, 185, 129, 0.05)' },
+                    { border: '#f59e0b', bg: 'rgba(245, 158, 11, 0.05)' },
+                    { border: '#ef4444', bg: 'rgba(239, 68, 68, 0.05)' }
+                ];
+                const c = colors[idx % colors.length];
+
+                const points = days.map(day => {
+                    const matches = filteredData.filter(h => 
+                        h.timestamp.startsWith(day) && 
+                        `${h.origin}→${h.destination}` === route &&
+                        h.cheapestPriceBRL !== null
+                    );
+                    if (matches.length === 0) return null;
+                    // Retorna a menor tarifa do dia
+                    return Math.min(...matches.map(m => m.cheapestPriceBRL));
+                });
+
+                return {
+                    label: route,
+                    data: points,
+                    borderColor: c.border,
+                    backgroundColor: c.bg,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    borderWidth: 2
+                };
+            });
+
+            // Se o gráfico já existe, destrói para desenhar do zero
+            if (priceEvolutionChart) {
+                priceEvolutionChart.destroy();
+            }
+
+            priceEvolutionChart = new Chart(canvas, {
+                type: 'line',
+                data: {
+                    labels: days.map(d => d.split('-').reverse().slice(0, 2).join('/')),
+                    datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#9ca3af',
+                                font: { family: 'Inter', weight: 500 }
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#9ca3af', font: { family: 'Inter' } }
+                        },
+                        y: {
+                            grid: { color: 'rgba(255, 255, 255, 0.04)' },
+                            ticks: { 
+                                color: '#9ca3af', 
+                                font: { family: 'Inter' },
+                                callback: (val) => 'R$ ' + val
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Atualiza o widget de faixa de preço com a rota selecionada (ou a primeira disponível)
+            if (routes.length > 0) {
+                updatePriceRangeWidget(selectedRoute || routes[0]);
+            } else {
+                resetPriceRangeWidget();
+            }
+        }
+
+        // Filtro de rota do gráfico
+        function updateChartRoute() {
+            const val = document.getElementById('chart-route-filter').value;
+            renderChart(val);
+        }
+
+        // Calcula percentis para desenhar a barra do Google Flights
+        function updatePriceRangeWidget(route) {
+            const data = globalHistory.filter(h => 
+                `${h.origin}→${h.destination}` === route && 
+                h.cheapestPriceBRL !== null
+            );
+
+            if (data.length === 0) {
+                resetPriceRangeWidget();
+                return;
+            }
+
+            const prices = data.map(d => d.cheapestPriceBRL).sort((a,b) => a - b);
+            const currentPrice = prices[prices.length - 1]; // Menor preço do último rastreio
+
+            const min = prices[0];
+            const max = prices[prices.length - 1];
+
+            // Percentil 25 e 75
+            const p25 = getPercentile(prices, 0.25);
+            const p75 = getPercentile(prices, 0.75);
+
+            document.getElementById('range-route-label').textContent = route;
+            document.getElementById('range-lbl-min').textContent = 'R$ ' + min;
+            document.getElementById('range-lbl-max').textContent = 'R$ ' + max;
+
+            const pointer = document.getElementById('range-pointer');
+            const pointerVal = document.getElementById('range-pointer-val');
+            const statusText = document.getElementById('range-status-text');
+
+            // Calcula percentual para a posição do indicador (mínimo de 0%, máximo de 100%)
+            let pct = 50;
+            if (max > min) {
+                pct = ((currentPrice - min) / (max - min)) * 100;
+            }
+            pct = Math.max(0, Math.min(100, pct));
+
+            pointer.style.left = `${pct}%`;
+            pointer.style.opacity = '1';
+            pointerVal.textContent = 'R$ ' + currentPrice;
+
+            // Determina a classificação da tarifa
+            if (currentPrice <= p25) {
+                statusText.innerHTML = `Tarifa atual de <span>R$ ${currentPrice}</span> está <span class="cheap">BARATA</span> em relação ao histórico.`;
+            } else if (currentPrice >= p75) {
+                statusText.innerHTML = `Tarifa atual de <span>R$ ${currentPrice}</span> está <span class="expensive">ALTA</span> em relação ao histórico.`;
+            } else {
+                statusText.innerHTML = `Tarifa atual de <span>R$ ${currentPrice}</span> está na <span class="typical">FAIXA TÍPICA</span> de preço.`;
+            }
+        }
+
+        function resetPriceRangeWidget() {
+            document.getElementById('range-route-label').textContent = '---';
+            document.getElementById('range-lbl-min').textContent = 'Min';
+            document.getElementById('range-lbl-max').textContent = 'Max';
+            document.getElementById('range-pointer').style.opacity = '0';
+            document.getElementById('range-status-text').textContent = 'Selecione uma rota com histórico de preços para visualizar.';
+        }
+
+        // Função estatística auxiliar
+        function getPercentile(arr, q) {
+            const pos = (arr.length - 1) * q;
+            const base = Math.floor(pos);
+            const rest = pos - base;
+            if (arr[base + 1] !== undefined) {
+                return arr[base] + rest * (arr[base + 1] - arr[base]);
+            }
+            return arr[base];
+        }
+
+        // Popula os alertas nos cards visuais
+        function populateAlerts(alerts) {
+            const container = document.getElementById('alerts-cards-list');
+            container.innerHTML = '';
+
+            if (!alerts || alerts.length === 0) {
+                container.innerHTML = `
+                    <div class="no-alerts">
+                        <i class="ph-bold ph-bell-slash"></i>
+                        <p>Você não possui nenhum alerta configurado.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            alerts.forEach(a => {
+                const card = document.createElement('div');
+                card.className = 'alert-card glass';
+                card.id = `alert-card-${a.id}`;
+                
+                const idaFormatada = a.departure_date.split('-').reverse().join('/');
+                const voltaFormatada = a.return_date ? a.return_date.split('-').reverse().join('/') : null;
+
+                card.innerHTML = `
+                    <div class="alert-header">
+                        <div class="alert-route">
+                            <span>${a.origin}</span>
+                            <i class="ph-bold ph-arrow-right"></i>
+                            <span>${a.destination}</span>
+                        </div>
+                        <span class="alert-type">${a.trip_type === 'round-trip' ? 'Ida e Volta' : 'Só Ida'}</span>
+                    </div>
+
+                    <div class="alert-dates">
+                        <div class="alert-date-item">
+                            <i class="ph-bold ph-calendar"></i>
+                            <span>Ida: ${idaFormatada}</span>
+                        </div>
+                        ${voltaFormatada ? `
+                        <div class="alert-date-item">
+                            <i class="ph-bold ph-calendar-arrow-down"></i>
+                            <span>Volta: ${voltaFormatada}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+
+                    <div class="alert-price-section">
+                        <span class="alert-price-label">Preço Limite:</span>
+                        <div class="alert-price-edit-group">
+                            <span style="font-size:12px; font-weight:600; color:var(--muted)">R$</span>
+                            <input type="number" class="alert-price-input" id="alert-price-input-${a.id}" value="${a.max_price_brl}" min="1" oninput="showSaveBtn(${a.id})">
+                            <button class="btn-mini-save" id="alert-save-btn-${a.id}" style="display:none;" onclick="updateAlertPrice(${a.id})" title="Salvar preço">
+                                <i class="ph-bold ph-check"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="alert-actions">
+                        <button class="btn btn-danger btn-mini" style="padding: 6px 12px; font-size:12px;" onclick="deleteAlert(${a.id})">
+                            <i class="ph-bold ph-trash"></i> Remover
+                        </button>
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        // Mostra botão de salvar quando preço limite é alterado
+        function showSaveBtn(id) {
+            document.getElementById(`alert-save-btn-${id}`).style.display = 'flex';
+        }
+
+        // Atualiza preço limite do alerta via API
+        async function updateAlertPrice(id) {
+            const input = document.getElementById(`alert-price-input-${id}`);
+            const val = Number(input.value);
+
+            if (isNaN(val) || val <= 0) {
+                alert("Preço máximo inválido.");
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/alerts/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, maxPriceBRL: val })
+                });
+
+                if (res.ok) {
+                    document.getElementById(`alert-save-btn-${id}`).style.display = 'none';
+                    // Feedback visual verde rápido
+                    input.style.borderColor = 'var(--green)';
+                    setTimeout(() => { input.style.borderColor = 'var(--border)'; }, 1500);
+                } else {
+                    const data = await res.json();
+                    alert(data.message || "Erro ao salvar.");
+                }
+            } catch (err) {
+                console.error("Erro no updateAlertPrice:", err);
+            }
+        }
+
+        // Remove um alerta com animação suave
+        async function deleteAlert(id) {
+            if (!confirm("Tem certeza que deseja remover este alerta?")) return;
+
+            try {
+                const res = await fetch(`/api/alerts?id=${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (res.ok) {
+                    const card = document.getElementById(`alert-card-${id}`);
+                    card.classList.add('removing');
+                    setTimeout(() => {
+                        card.remove();
+                        // Se não restarem cartões, redesenha
+                        const container = document.getElementById('alerts-cards-list');
+                        if (container.children.length === 0) {
+                            container.innerHTML = `
+                                <div class="no-alerts">
+                                    <i class="ph-bold ph-bell-slash"></i>
+                                    <p>Você não possui nenhum alerta configurado.</p>
+                                </div>
+                            `;
+                        }
+                    }, 300);
+                } else {
+                    const data = await res.json();
+                    alert(data.message || "Erro ao remover alerta.");
+                }
+            } catch (err) {
+                console.error("Erro ao deletar alerta:", err);
+            }
+        }
+
+        // Cria um novo alerta pelo formulário
+        async function createNewAlert(e) {
+            e.preventDefault();
+
+            const origin = document.getElementById('form-origin').value;
+            const destination = document.getElementById('form-destination').value;
+            const departureDate = document.getElementById('form-departure').value;
+            const returnDate = document.getElementById('form-return').value;
+            const maxPriceBRL = Number(document.getElementById('form-max-price').value);
+
+            const feedback = document.getElementById('form-feedback');
+            feedback.style.display = 'none';
+            feedback.className = 'form-message';
+
+            try {
+                const res = await fetch('/api/alerts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        origin,
+                        destination,
+                        departureDate,
+                        returnDate: selectedTripType === 'round-trip' ? returnDate : undefined,
+                        tripType: selectedTripType,
+                        maxPriceBRL
+                    })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    feedback.textContent = "Alerta configurado com sucesso!";
+                    feedback.classList.add('success');
+                    
+                    // Reseta formulário
+                    document.getElementById('new-alert-form').reset();
+                    setTripType('one-way');
+                    
+                    // Recarrega lista de alertas do usuário
+                    const alertsRes = await fetch('/api/alerts');
+                    if (alertsRes.ok) {
+                        const alertsData = await alertsRes.json();
+                        populateAlerts(alertsData.alerts);
+                    }
+                    
+                    setTimeout(() => { feedback.style.display = 'none'; }, 4000);
+                } else {
+                    feedback.textContent = data.message || "Erro ao criar alerta. Verifique os campos.";
+                    feedback.classList.add('error');
+                }
+            } catch (err) {
+                console.error("Erro ao criar alerta:", err);
+                feedback.textContent = "Erro interno ao conectar ao servidor.";
+                feedback.classList.add('error');
+            }
+        }
+    </script>
+</body>
+</html>
