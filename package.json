@@ -15,6 +15,7 @@
     "migrate": "ts-node src/migrate-history.ts",
     "dashboard": "ts-node src/scripts/generate-dashboard.ts",
     "intelligence": "ts-node src/scripts/generate-intelligence-report.ts",
+    "radar": "ts-node src/scripts/send-personalized-radar.ts",
     "test": "jest"
   },
   "jest": {

@@ -25,6 +25,7 @@ Monitora passagens aéreas saindo de Brasília (BSB) e envia alertas no Telegram
 - 🚨 **Detector de Erro de Tarifa (Glitch)** — Interceptador estatístico para quedas de preços extremas, contornando tetos configurados para não perder passagens promocionais e bugs.
 - 🎨 **SaaS Dashboard (Google Blog Style)** — Painel web moderno, responsivo e baseado nas diretrizes visuais do *Google Keyword Blog* (Material Design 3) com suporte a tema Claro e Escuro persistente.
 - 🔒 **Autenticação HMAC Telegram & Cookies** — Validação criptográfica HMAC-SHA256 direta das credenciais assinadas pelo Telegram e segurança de sessão por cookies `HttpOnly`/`SameSite`.
+- 📡 **Radar inteligente personalizado** — resumo diário por usuário com recomendação para comprar, esperar, monitorar, ajustar alerta ou agir rápido em possível erro de tarifa.
 - 🧪 **Testes com cobertura** — CI bloqueia PRs com cobertura abaixo de 80%
 
 ---
@@ -104,6 +105,7 @@ npm test -- --coverage  # testes + relatório de cobertura
 | `CHILDREN` | `0` | Número de passageiros crianças |
 | `MAX_PRICE_BRL` | `300` | Threshold máximo em reais |
 | `PRICE_DROP_THRESHOLD` | `0.95` | Fator de queda para acionar o alerta (0.95 = queda de 5%). Ex: `0.90` para alertar só com queda ≥ 10%. |
+| `PRICE_ERROR_THRESHOLD` | `0.45` | Queda mínima vs. média recente para destacar possível erro de tarifa no tracker e no radar personalizado. |
 | `HISTORY_RETENTION_DAYS` | `365` | Quantos dias de histórico manter. Entradas mais antigas são removidas automaticamente. |
 | `WEBHOOK_PORT` | `3000` | Porta para o servidor de webhook do bot |
 | `TRIAL_DAYS` | `7` | Duração do teste grátis ao autorizar um usuário |
@@ -185,6 +187,7 @@ Vá em **Settings → Secrets and variables → Actions → Variables** e adicio
 | `check-flights.yml` | Cron 08h/20h BRT + manual | Busca voos, envia alertas, commita `history.db` e `health.json` |
 | `check-news.yml` | Cron 3x ao dia | Monitora notícias de milhas e pontos |
 | `check-offers.yml` | Cron a cada 2 horas | Busca novas ofertas de passagens/viagens |
+| `personalized-radar.yml` | Cron diário 09:15 BRT + manual | Envia um radar personalizado para cada usuário com alertas ativos |
 
 > Todos os workflows usam **Node.js 22** (obrigatório para `node:sqlite`).
 
