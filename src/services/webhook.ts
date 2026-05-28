@@ -451,12 +451,19 @@ async function handleMeusAlertas(chatId: string): Promise<void> {
     return;
   }
 
-  const lines = ["📋 *Seus Alertas Ativos:*", ""];
+  const lines = ["📋 *Seus Alertas:*", ""];
   for (const a of alerts) {
+    const isExpired = isBeforeToday(a.departure_date);
     lines.push(`🛫 *${a.origin} → ${a.destination}*`);
     lines.push(`📅 ${a.departure_date}${a.return_date ? ` (Volta: ${a.return_date})` : ""}`);
+    if (isExpired) {
+      lines.push("⚠️ *Expirado* — Esse voo já passou. Se quiser, remova este alerta.");
+    }
     lines.push(`💰 Limite: *${formatBRL(a.max_price_brl)}*`);
-    lines.push(`🗑️ \`/remover ${a.id}\` | ✏️ \`/editar ${a.id} NOVO_PREÇO\``);
+    lines.push(isExpired
+      ? `🗑️ \`/remover ${a.id}\``
+      : `🗑️ \`/remover ${a.id}\` | ✏️ \`/editar ${a.id} NOVO_PREÇO\``
+    );
     lines.push("");
   }
 

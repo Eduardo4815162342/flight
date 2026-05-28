@@ -439,6 +439,39 @@ describe("Comandos de Alerta", () => {
     expect(body.text).toContain("removido com sucesso");
   });
 
+  it("marca alertas com data passada como expirados em /meusalertas", async () => {
+    mock.onPost(/sendMessage/).reply(200, { ok: true });
+    (userService.listUserAlerts as jest.Mock).mockResolvedValue([
+      {
+        id: 10,
+        origin: "BSB",
+        destination: "GRU",
+        departure_date: "2000-01-01",
+        trip_type: "one-way",
+        max_price_brl: 500,
+        is_active: true,
+      },
+      {
+        id: 11,
+        origin: "BSB",
+        destination: "AJU",
+        departure_date: "2099-01-01",
+        trip_type: "one-way",
+        max_price_brl: 600,
+        is_active: true,
+      },
+    ]);
+
+    await handleUpdate(msgUpdate(USER_ID, "/meusalertas"));
+
+    const body = JSON.parse(mock.history.post[0].data);
+    expect(body.text).toContain("BSB → GRU");
+    expect(body.text).toContain("⚠️ *Expirado*");
+    expect(body.text).toContain("Esse voo já passou");
+    expect(body.text).toContain("/remover 10");
+    expect(body.text).toContain("BSB → AJU");
+  });
+
   it("processa /perguntar usando o concierge de IA", async () => {
     mock.onPost(/sendMessage/).reply(200, { ok: true });
 
@@ -598,4 +631,3 @@ describe("Comando /tendencia", () => {
     expect(fallbackBody.text).toContain("Último preço");
   });
 });
-
