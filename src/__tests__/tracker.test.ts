@@ -137,6 +137,47 @@ describe("runTracker", () => {
       .toBeLessThan(mockAppendHistory.mock.invocationCallOrder[0]);
   });
 
+  it("preserva campos ricos do voo ao gravar historico", async () => {
+    mockSearchWithApify.mockResolvedValue([{
+      ...makeFlight(200),
+      price: 38,
+      currency: "USD",
+      airline: "LATAM",
+      flightNumber: "LA 3264",
+      airplane: "Airbus A321",
+      stops: 0,
+      durationMinutes: 105,
+      priceInsights: {
+        lowestPrice: 35,
+        priceLevel: "low",
+        typicalPriceRange: [50, 90],
+        priceHistory: [[1716200000, 70]],
+      },
+    }]);
+
+    const { runTracker } = await import("../services/tracker");
+    await runTracker();
+
+    expect(mockAppendHistory).toHaveBeenCalledWith(expect.objectContaining({
+      flights: [
+        expect.objectContaining({
+          airline: "LATAM",
+          price: 38,
+          currency: "USD",
+          priceBRL: 200,
+          flightNumber: "LA 3264",
+          airplane: "Airbus A321",
+          stops: 0,
+          durationMinutes: 105,
+          priceInsights: expect.objectContaining({
+            priceLevel: "low",
+            lowestPrice: 35,
+          }),
+        }),
+      ],
+    }));
+  });
+
   it("não envia alerta quando preço abaixo do limite não caiu o suficiente", async () => {
     mockSearchWithApify.mockResolvedValue([makeFlight(280)]);
     mockGetLastCheapestPrice.mockResolvedValue(290);

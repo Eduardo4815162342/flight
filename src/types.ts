@@ -46,10 +46,17 @@ export interface HistoryEntry {
   cheapestPriceBRL: number | null;
   flights: Array<{
     airline?: string;
+    flightNumber?: string;
+    airplane?: string;
+    price?: number;
+    currency?: string;
     priceBRL: number;
     departureTime?: string;
+    stops?: number;
+    durationMinutes?: number;
     link: string;
     source: string;
+    priceInsights?: PriceInsights;
   }>;
 }
 

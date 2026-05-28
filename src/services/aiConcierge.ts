@@ -4,8 +4,9 @@ import { Flight, SearchParams } from "../types";
 import { appendHistory, getRouteLowestPrice, getRoutePriceHistory } from "./history";
 import { completeChat } from "./openrouter";
 import { formatBRL, getUSDtoBRL } from "./currency";
-import { bestDayOfWeek, calcTrend, TrendResult, BestDayResult } from "../utils/priceHistory";
+import { TrendResult, BestDayResult } from "../utils/priceHistory";
 import { getCached, setCached } from "../utils/liveSearchCache";
+import { calculateRouteIntelligence } from "./intelligence";
 
 interface Route {
   origin: string;
@@ -56,26 +57,6 @@ export function extractRouteFromQuestion(question: string): Route | null {
   if (origin === destination) return null;
 
   return { origin, destination };
-}
-
-function roundPct(value: number): number {
-  return Math.round(value * 10) / 10;
-}
-
-function average(values: number[]): number | null {
-  if (values.length === 0) return null;
-  return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
-}
-
-function pricesInLastDays(
-  history: [number, number][],
-  days: number,
-  nowMs: number
-): number[] {
-  const cutoffMs = nowMs - days * 24 * 60 * 60 * 1000;
-  return history
-    .filter(([ts]) => ts * 1000 >= cutoffMs)
-    .map(([, price]) => price);
 }
 
 function parseQuestionDate(question: string): string | null {
@@ -162,10 +143,17 @@ async function fetchLiveRoutePrice(
     cheapestPriceBRL: bestFlight.priceBRL,
     flights: sorted.slice(0, 10).map((flight) => ({
       airline: flight.airline,
+      flightNumber: flight.flightNumber,
+      airplane: flight.airplane,
+      price: flight.price,
+      currency: flight.currency,
       priceBRL: flight.priceBRL,
       departureTime: flight.departureTime,
+      stops: flight.stops,
+      durationMinutes: flight.durationMinutes,
       link: flight.link,
       source: flight.source,
+      priceInsights: flight.priceInsights,
     })),
   });
 
@@ -176,28 +164,27 @@ async function fetchLiveRoutePrice(
 
 async function buildRouteStats(route: Route, departureDate?: string, nowMs = Date.now()): Promise<RouteStats | null> {
   const history = await getRoutePriceHistory(route.origin, route.destination, departureDate);
-  if (history.length < 2) return null;
+  const intelligence = calculateRouteIntelligence({
+    origin: route.origin,
+    destination: route.destination,
+    history,
+    nowMs,
+  });
+  if (!intelligence || intelligence.sampleCount < 2) return null;
 
-  const sorted = [...history].sort((a, b) => a[0] - b[0]);
-  const latestPrice = sorted[sorted.length - 1][1];
   const lowestEver = await getRouteLowestPrice(route.origin, route.destination, departureDate);
-  const prices30d = pricesInLastDays(sorted, 30, nowMs);
-  const average30d = average(prices30d);
-  const min30d = prices30d.length > 0 ? Math.min(...prices30d) : null;
-  const trend7d = calcTrend(sorted, 7, nowMs);
-  const bestDay = bestDayOfWeek(sorted);
 
   return {
     route,
-    sampleCount: sorted.length,
-    latestPrice,
+    sampleCount: intelligence.sampleCount,
+    latestPrice: intelligence.latestPrice,
     lowestEver,
-    average30d,
-    min30d,
-    currentVsAverage30dPct: average30d ? roundPct(((latestPrice - average30d) / average30d) * 100) : null,
-    currentVsLowestPct: lowestEver ? roundPct(((latestPrice - lowestEver) / lowestEver) * 100) : null,
-    trend7d,
-    bestDay,
+    average30d: intelligence.average30d,
+    min30d: intelligence.min30d,
+    currentVsAverage30dPct: intelligence.currentVsAverage30dPct,
+    currentVsLowestPct: lowestEver ? Math.round(((intelligence.latestPrice - lowestEver) / lowestEver) * 1000) / 10 : null,
+    trend7d: intelligence.trend7d,
+    bestDay: intelligence.bestDay,
   };
 }
 

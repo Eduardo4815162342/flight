@@ -136,10 +136,17 @@ async function processAlert(alert: UserAlert): Promise<void> {
     cheapestPriceBRL: currentCheapest,
     flights: flights.map(f => ({
       airline: f.airline,
+      flightNumber: f.flightNumber,
+      airplane: f.airplane,
+      price: f.price,
+      currency: f.currency,
       priceBRL: f.priceBRL,
       departureTime: f.departureTime,
+      stops: f.stops,
+      durationMinutes: f.durationMinutes,
       link: f.link,
-      source: f.source
+      source: f.source,
+      priceInsights: f.priceInsights
     }))
   });
 
