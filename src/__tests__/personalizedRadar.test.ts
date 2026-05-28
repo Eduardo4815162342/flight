@@ -4,6 +4,7 @@ import {
 } from "../services/personalizedRadar";
 import { HistoryEntry } from "../types";
 import { UserAlert } from "../services/user";
+import * as dbService from "../services/db";
 
 jest.mock("../config", () => ({
   config: {
@@ -178,6 +179,43 @@ describe("renderPersonalizedRadarMessage", () => {
     expect(message).toContain("Comprar agora");
     expect(message).toContain("BSB → GRU");
     expect(message).toContain("R$");
-    expect(message).toContain("/editar 1");
+    expect(message).toContain("`/editar 1 NOVO_PRECO`");
+    expect(message).not.toContain("Ajuste: /editar 1 NOVO_PRECO");
+  });
+});
+
+describe("getRadarEligibleAlerts", () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it("inclui alerta ativo do admin mesmo sem assinatura", async () => {
+    const execute = jest.fn().mockResolvedValue({
+      rows: [{
+        id: 10,
+        chat_id: "admin-chat",
+        origin: "BSB",
+        destination: "GRU",
+        departure_date: "2026-07-20",
+        return_date: null,
+        trip_type: "one-way",
+        max_price_brl: 600,
+        is_active: 1,
+      }],
+    });
+    jest.spyOn(dbService, "getDb").mockReturnValue({ execute } as any);
+
+    const { getRadarEligibleAlerts } = await import("../services/personalizedRadar");
+    const result = await getRadarEligibleAlerts();
+
+    expect(result).toHaveLength(1);
+    expect(result[0]).toEqual(expect.objectContaining({
+      id: 10,
+      chat_id: "admin-chat",
+      origin: "BSB",
+      destination: "GRU",
+      is_active: true,
+    }));
+    expect(execute.mock.calls[0][0].sql).toContain("u.chat_id = ?");
   });
 });

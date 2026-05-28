@@ -2,9 +2,10 @@ import { config } from "../config";
 import { HistoryEntry } from "../types";
 import { calculateRouteIntelligence, RouteRecommendation } from "./intelligence";
 import { formatBRL } from "./currency";
+import { getDb } from "./db";
 import { getFullHistory } from "./history";
 import { sendMessage } from "./telegram";
-import { getAllActiveAlerts, UserAlert } from "./user";
+import { UserAlert } from "./user";
 
 export type PersonalizedRadarAction =
   | "price_error"
@@ -220,7 +221,7 @@ function renderItem(item: PersonalizedRadarItem): string {
   const price = item.latestPrice === null ? "sem preco recente" : formatBRL(item.latestPrice);
   const score = item.dealScore === null ? "score indisponivel" : `score ${item.dealScore}/100`;
   const reasons = item.reasons.length > 0 ? item.reasons.join("; ") : "sem motivo forte";
-  const editHint = item.alertId ? `\n   Ajuste: /editar ${item.alertId} NOVO_PRECO` : "";
+  const editHint = item.alertId ? `\n   Ajuste: \`/editar ${item.alertId} NOVO_PRECO\`` : "";
 
   return [
     `${actionEmoji(item.action)} *${actionLabel(item.action)}* — *${item.route}*`,
@@ -249,9 +250,38 @@ export function renderPersonalizedRadarMessage(report: PersonalizedRadarReport):
   ].join("\n").trim();
 }
 
+export async function getRadarEligibleAlerts(): Promise<UserAlert[]> {
+  const result = await getDb().execute({
+    sql: `SELECT a.* FROM alerts a
+          JOIN users u ON a.chat_id = u.chat_id
+          LEFT JOIN subscriptions s ON s.chat_id = u.chat_id
+          WHERE a.is_active = 1
+            AND u.is_authorized = 1
+            AND (
+              u.chat_id = ?
+              OR s.status = 'manual'
+              OR (s.status = 'trialing' AND s.trial_ends_at IS NOT NULL AND datetime(s.trial_ends_at) >= datetime('now'))
+              OR (s.status = 'active' AND (s.paid_until IS NULL OR datetime(s.paid_until) >= datetime('now')))
+            )`,
+    args: [config.telegram.chatId],
+  });
+
+  return result.rows.map((row) => ({
+    id: Number(row.id),
+    chat_id: String(row.chat_id),
+    origin: String(row.origin),
+    destination: String(row.destination),
+    departure_date: String(row.departure_date),
+    return_date: row.return_date ? String(row.return_date) : undefined,
+    trip_type: String(row.trip_type),
+    max_price_brl: Number(row.max_price_brl),
+    is_active: Boolean(row.is_active),
+  }));
+}
+
 export async function runPersonalizedRadar(): Promise<RunPersonalizedRadarResult> {
   const [alerts, history] = await Promise.all([
-    getAllActiveAlerts(),
+    getRadarEligibleAlerts(),
     getFullHistory(),
   ]);
   const reports = buildPersonalizedRadarReports({
