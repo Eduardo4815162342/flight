@@ -1,4 +1,5 @@
 import { bestDayOfWeek, calcTrend, BestDayResult, TrendResult } from "../utils/priceHistory";
+import { HistoryEntry } from "../types";
 
 export type RouteRecommendation = "buy" | "monitor" | "wait";
 
@@ -26,6 +27,29 @@ export interface RouteIntelligence {
   dealScore: number;
   recommendation: RouteRecommendation;
   reasons: string[];
+}
+
+export interface InsufficientDataRoute {
+  route: string;
+  origin: string;
+  destination: string;
+  departureDate: string;
+  sampleCount: number;
+}
+
+export interface DailyIntelligenceItem extends RouteIntelligence {
+  departureDate: string;
+}
+
+export interface DailyIntelligenceReport {
+  generatedAt: string;
+  totalHistoryEntries: number;
+  analyzedRoutes: number;
+  topOpportunities: DailyIntelligenceItem[];
+  routesToWait: DailyIntelligenceItem[];
+  routesToMonitor: DailyIntelligenceItem[];
+  insufficientData: InsufficientDataRoute[];
+  items: DailyIntelligenceItem[];
 }
 
 function average(values: number[]): number | null {
@@ -116,4 +140,150 @@ export function calculateRouteIntelligence(input: RouteIntelligenceInput): Route
     recommendation,
     reasons,
   };
+}
+
+function routeKey(entry: HistoryEntry): string {
+  return [
+    entry.origin,
+    entry.destination,
+    entry.departureDate,
+    entry.returnDate ?? "",
+  ].join("|");
+}
+
+function todayISO(generatedAt: string): string {
+  return new Date(generatedAt).toISOString().split("T")[0];
+}
+
+function formatBRL(value: number): string {
+  return `R$ ${Math.round(value).toLocaleString("pt-BR")}`;
+}
+
+function recommendationLabel(value: RouteRecommendation): string {
+  if (value === "buy") return "comprar";
+  if (value === "wait") return "esperar";
+  return "monitorar";
+}
+
+export function buildDailyIntelligenceReport(
+  history: HistoryEntry[],
+  generatedAt: string = new Date().toISOString()
+): DailyIntelligenceReport {
+  const grouped = new Map<string, HistoryEntry[]>();
+  const today = todayISO(generatedAt);
+
+  for (const entry of history) {
+    if (entry.cheapestPriceBRL === null) continue;
+    if (entry.departureDate < today) continue;
+    const key = routeKey(entry);
+    grouped.set(key, [...(grouped.get(key) ?? []), entry]);
+  }
+
+  const items: DailyIntelligenceItem[] = [];
+  const insufficientData: InsufficientDataRoute[] = [];
+  const nowMs = new Date(generatedAt).getTime();
+
+  for (const entries of grouped.values()) {
+    const sorted = [...entries].sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+    const first = sorted[0];
+    const historyPoints: [number, number][] = sorted.map((entry) => [
+      Math.floor(new Date(entry.timestamp).getTime() / 1000),
+      entry.cheapestPriceBRL as number,
+    ]);
+
+    const intelligence = calculateRouteIntelligence({
+      origin: first.origin,
+      destination: first.destination,
+      history: historyPoints,
+      nowMs,
+    });
+
+    if (!intelligence || intelligence.sampleCount < 3) {
+      insufficientData.push({
+        route: `${first.origin}→${first.destination}`,
+        origin: first.origin,
+        destination: first.destination,
+        departureDate: first.departureDate,
+        sampleCount: historyPoints.length,
+      });
+      continue;
+    }
+
+    items.push({
+      ...intelligence,
+      departureDate: first.departureDate,
+    });
+  }
+
+  const sortedItems = items.sort((a, b) => b.dealScore - a.dealScore);
+
+  return {
+    generatedAt,
+    totalHistoryEntries: history.length,
+    analyzedRoutes: sortedItems.length,
+    topOpportunities: sortedItems.filter((item) => item.recommendation === "buy").slice(0, 10),
+    routesToWait: sortedItems.filter((item) => item.recommendation === "wait").slice(0, 10),
+    routesToMonitor: sortedItems.filter((item) => item.recommendation === "monitor").slice(0, 10),
+    insufficientData: insufficientData.sort((a, b) => a.route.localeCompare(b.route)),
+    items: sortedItems,
+  };
+}
+
+function renderItems(items: DailyIntelligenceItem[]): string {
+  if (items.length === 0) return "_Nenhuma rota nesta categoria._";
+
+  return items.map((item, index) => {
+    const reasons = item.reasons.length > 0 ? item.reasons.join("; ") : "sem motivo forte";
+    const average = item.average30d === null ? "media indisponivel" : `media 30d ${formatBRL(item.average30d)}`;
+    return [
+      `${index + 1}. ${item.route} em ${item.departureDate}`,
+      `   - Score: ${item.dealScore}/100; recomendacao: ${recommendationLabel(item.recommendation)}`,
+      `   - Preco atual: ${formatBRL(item.latestPrice)}; menor historico: ${formatBRL(item.lowestEver)}; ${average}`,
+      `   - Motivos: ${reasons}`,
+    ].join("\n");
+  }).join("\n\n");
+}
+
+export function renderDailyIntelligenceMarkdown(report: DailyIntelligenceReport): string {
+  const generated = new Date(report.generatedAt).toLocaleString("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+  });
+
+  const insufficient = report.insufficientData.length === 0
+    ? "_Nenhuma rota com dados insuficientes._"
+    : report.insufficientData.map((item) =>
+      `- ${item.route} em ${item.departureDate}: ${item.sampleCount} amostra(s)`
+    ).join("\n");
+
+  return [
+    "# BSB Price Track - Inteligencia diaria",
+    "",
+    `Gerado em: ${generated}`,
+    "",
+    "## Resumo",
+    "",
+    `- Entradas no historico: ${report.totalHistoryEntries}`,
+    `- Rotas analisadas: ${report.analyzedRoutes}`,
+    `- Oportunidades: ${report.topOpportunities.length}`,
+    `- Rotas para esperar: ${report.routesToWait.length}`,
+    `- Rotas para monitorar: ${report.routesToMonitor.length}`,
+    `- Rotas com dados insuficientes: ${report.insufficientData.length}`,
+    "",
+    "## Top oportunidades",
+    "",
+    renderItems(report.topOpportunities),
+    "",
+    "## Esperar",
+    "",
+    renderItems(report.routesToWait),
+    "",
+    "## Monitorar",
+    "",
+    renderItems(report.routesToMonitor),
+    "",
+    "## Dados insuficientes",
+    "",
+    insufficient,
+    "",
+  ].join("\n");
 }
