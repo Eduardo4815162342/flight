@@ -1,6 +1,6 @@
 # ✈️ BSB Price Track
 
-Monitors airfare departing from Brasília (BSB) and sends Telegram alerts when prices are below the configured threshold. Runs automatically via GitHub Actions twice a day.
+Monitors airfare, price trends, and miles news with a multi-user Telegram bot, web dashboard, trial/subscription access, and intelligent reports. The bot runs 24/7 as a Railway webhook, while scheduled trackers and reports run via GitHub Actions.
 
 ## Features
 
@@ -11,9 +11,14 @@ Monitors airfare departing from Brasília (BSB) and sends Telegram alerts when p
 - ✈️ **One-way or Round-trip** — Configurable via environment variables.
 - 👥 **Passenger Configuration** — Support for multiple adults and children.
 - 🔄 **Retry with Backoff & Token Rotation** — Retries Apify up to 3 times and rotates between up to 5 tokens if credits run out.
-- 💾 **SQLite History** — Saves every search in `data/history.db` (automatically committed) with configurable automatic pruning.
+- 💾 **Turso History** — Saves every search in the libSQL/Turso database with configurable automatic pruning.
 - 📊 **Weekly Report** — Automatic summary of the best prices of the week sent on Sundays.
+- 🧠 **Daily Intelligence** — Markdown/JSON report with opportunity score, buy/wait recommendation, and insufficient-data routes.
 - 🤖 **Interactive Bot (Webhook)** — Commands for real-time search and history consultation.
+- 🧳 **AI Concierge (`/perguntar`)** — Answers whether it is worth buying now using real history, live search, and OpenRouter.
+- 🧮 **CPM Calculator (`/cpm`)** — Compares cash fares vs. miles using a provided cash price or live search.
+- 👥 **Multi-user Authorization** — New users remain pending until the admin approves/rejects them with inline Telegram buttons.
+- 💳 **Trial, Subscription, and Cakto** — Authorized users receive a free trial; Cakto webhooks can activate, renew, or cancel access.
 - 🛡️ **Configurable Anti-spam** — Only sends an alert if the price drops ≥ X% (default 5%, configurable via `PRICE_DROP_THRESHOLD`).
 - ⚙️ **Advanced Filters** — Filter by airlines, maximum stops, and flight duration.
 - 💵 **Dynamic Conversion** — Converts prices from USD/other currencies to BRL in real-time via API.
@@ -25,18 +30,20 @@ Monitors airfare departing from Brasília (BSB) and sends Telegram alerts when p
 - 🚨 **Price Glitch Detector** — Statistical anomaly interceptor for extreme price drops, bypassing configured ceilings and thresholds to ensure promotion or bug airfares are not missed.
 - 🎨 **SaaS Dashboard (Google Blog Style)** — Modern, responsive web dashboard based on the visual guidelines of *Google Blog (The Keyword)* (Material Design 3) with persistent Light and Dark theme support.
 - 🔒 **HMAC Telegram Auth & Cookies** — Secure HMAC-SHA256 direct validation of credentials signed by Telegram and session persistence using `HttpOnly`/`SameSite` secure cookies.
-- 🧪 **Tests with Coverage** — CI blocks PRs with coverage below 80%.
+- 📡 **Personalized Smart Radar** — Daily per-user summary recommending buy, wait, monitor, adjust alert, or act fast on likely fare glitches.
+- 🧪 **Tests with Coverage** — CI runs typecheck and Jest with thresholds defined in `package.json`.
 
 ---
 
 ## Stack
 
-- **Node.js 22 + TypeScript** (native `node:sqlite` usage)
+- **Node.js 22 + TypeScript**
 - **APIs**: Apify (Primary) → RapidAPI/Skyscanner (Fallback)
-- **AI**: OpenRouter (Claude/Alpha) for automatic article summaries
-- **Persistence**: SQLite (history) and JSON (seen news/offers)
+- **AI**: OpenRouter for news summaries and the travel concierge.
+- **Persistence**: Turso/libSQL for users, alerts, history, seen news, AI usage, and subscriptions.
 - **Notifications**: Telegram Bot
-- **CI/CD**: GitHub Actions — scheduled runs and automatic Git persistence
+- **24/7 Server**: Railway webhook (`src/webhook.ts`)
+- **CI/CD**: GitHub Actions — trackers, reports, dashboard, and tests
 
 ---
 
@@ -71,7 +78,7 @@ npm test              # Tests only
 npm test -- --coverage  # Tests + coverage report
 ```
 
-> **Requirement**: Node.js 22 or higher (required for `node:sqlite`).
+> **Requirement**: Node.js 22 or higher.
 
 ---
 
@@ -85,8 +92,11 @@ npm test -- --coverage  # Tests + coverage report
 | `RAPIDAPI_KEY` | RapidAPI Key (fallback) |
 | `TELEGRAM_BOT_TOKEN` | Telegram Bot Token |
 | `TELEGRAM_CHAT_ID` | Telegram Chat/Group ID for alerts |
+| `TURSO_DATABASE_URL` | Turso/libSQL database URL |
+| `TURSO_AUTH_TOKEN` | Turso auth token |
 | `DESTINATIONS` | Comma-separated destinations (e.g., `GRU,SDL,FOR`) |
 | `OPENROUTER_API_KEY` | (Optional) OpenRouter Key for AI-powered news summaries |
+| `CAKTO_WEBHOOK_SECRET` | (Optional, recommended) Secret used to validate Cakto calls on `/webhooks/cakto` |
 
 ### Optional
 
@@ -103,8 +113,12 @@ npm test -- --coverage  # Tests + coverage report
 | `CHILDREN` | `0` | Number of child passengers |
 | `MAX_PRICE_BRL` | `300` | Maximum price threshold in BRL |
 | `PRICE_DROP_THRESHOLD` | `0.95` | Drop factor to trigger an alert (0.95 = 5% drop). E.g.: `0.90` to alert only on ≥ 10% drop. |
+| `PRICE_ERROR_THRESHOLD` | `0.45` | Minimum drop vs. recent average to flag likely fare glitches in the tracker and personalized radar. |
 | `HISTORY_RETENTION_DAYS` | `365` | How many days of history to keep. Older entries are removed automatically. |
 | `WEBHOOK_PORT` | `3000` | Port for the bot's webhook server |
+| `TRIAL_DAYS` | `7` | Free-trial duration when a user is authorized |
+| `CAKTO_ACCESS_DAYS` | `30` | Access days granted by Cakto purchase/renewal when payload omits duration |
+| `AI_DAILY_LIMIT` | `10` | Max AI concierge questions per user in the last 24h |
 | `AIRLINES_WHITELIST` | — | Comma-separated airlines (e.g., `LATAM,GOL`) |
 | `MAX_STOPS` | — | Maximum number of stops (0 = direct) |
 | `MAX_DURATION_HOURS`| — | Maximum flight duration in hours |
@@ -127,6 +141,9 @@ APIFY_API_TOKEN_1=apify_api_xxxxx
 RAPIDAPI_KEY=xxxxx
 TELEGRAM_BOT_TOKEN=123456:ABC-xxxxx
 TELEGRAM_CHAT_ID=-100xxxxxxxx
+TURSO_DATABASE_URL=libsql://your-database.turso.io
+TURSO_AUTH_TOKEN=your-token
+OPENROUTER_API_KEY=sk-or-v1-xxxxx
 
 ORIGIN=BSB
 DESTINATIONS=GRU,SDL,FOR
@@ -153,6 +170,10 @@ Go to **Settings → Secrets and variables → Actions → Secrets** and add:
 | `RAPIDAPI_KEY` | ✅ |
 | `TELEGRAM_BOT_TOKEN` | ✅ |
 | `TELEGRAM_CHAT_ID` | ✅ |
+| `TURSO_DATABASE_URL` | ✅ |
+| `TURSO_AUTH_TOKEN` | ✅ |
+| `OPENROUTER_API_KEY` | recommended |
+| `CAKTO_WEBHOOK_SECRET` | if using Cakto |
 
 ### Required Variables
 
@@ -170,6 +191,7 @@ Go to **Settings → Secrets and variables → Actions → Variables** and add:
 | `ORIGIN` | optional | `BSB` |
 | `ORIGINS` | optional | `BSB,GRU` |
 | `PRICE_DROP_THRESHOLD` | optional | `0.90` |
+| `PRICE_ERROR_THRESHOLD` | optional | `0.45` |
 | `HISTORY_RETENTION_DAYS` | optional | `365` |
 | `APIFY_ACTOR_ID` | optional | — |
 | `RAPIDAPI_HOST` | optional | — |
@@ -178,12 +200,16 @@ Go to **Settings → Secrets and variables → Actions → Variables** and add:
 
 | Workflow | Trigger | Description |
 |---|---|---|
-| `ci.yml` | Push and Pull Request | Runs tests + coverage (blocks if < 80%) |
-| `check-flights.yml` | Cron 08:00/20:00 BRT + manual | Scans flights, sends alerts, commits `history.db` and `health.json` |
+| `ci.yml` | Push and Pull Request | Runs typecheck + tests with coverage |
+| `check-flights.yml` | Cron 08:00/20:00 BRT + manual | Scans flights, sends alerts, and stores history in Turso |
 | `check-news.yml` | Cron 3x daily | Monitors miles and points news |
 | `check-offers.yml` | Cron every 2 hours | Scans for new travel offers |
+| `intelligence-report.yml` | Daily 09:00 BRT cron + manual | Generates the daily intelligence report as Markdown/JSON |
+| `personalized-radar.yml` | Daily 09:15 BRT cron + manual | Sends personalized radar summaries to users with active alerts |
+| `deploy-dashboard.yml` | Daily 00:00 BRT cron + landing/dashboard push | Generates the static dashboard and deploys GitHub Pages |
+| `test-summarize.yml` | Manual | Smoke test for OpenRouter summarization |
 
-> All workflows use **Node.js 22** (required for `node:sqlite`).
+> All workflows use **Node.js 22**.
 
 ---
 
@@ -203,27 +229,44 @@ bsb-price-track/
 │   ├── services/
 │   │   ├── tracker.ts            # Main logic: search, retry, alerts
 │   │   ├── news.ts               # RSS fetch and keyword filter logic (Miles/News)
+│   │   ├── intelligence.ts       # Opportunity score, recommendation, daily reports
+│   │   ├── personalizedRadar.ts  # Per-user/per-alert smart radar
+│   │   ├── aiConcierge.ts        # /perguntar with real history + live search + OpenRouter
+│   │   ├── subscription.ts       # Trial, manual subscription, paid access
+│   │   ├── caktoWebhook.ts       # Cakto webhook for activation/cancellation
 │   │   ├── telegram.ts           # Telegram message sending
 │   │   ├── currency.ts           # Currency conversion to BRL
-│   │   ├── history.ts            # SQLite history read/write (history.db)
+│   │   ├── history.ts            # Turso history read/write
 │   │   ├── healthCheck.ts        # Daily health check on Telegram
 │   │   ├── webhook.ts            # Webhook server logic
 │   │   └── weeklyReport.ts       # Weekly report generation
+│   ├── scripts/
+│   │   ├── generate-dashboard.ts          # Generates static dashboard HTML
+│   │   ├── generate-intelligence-report.ts # Generates Markdown/JSON reports
+│   │   └── send-personalized-radar.ts     # Sends personalized radar
 │   ├── utils/
 │   │   ├── retry.ts              # withRetry — generic exponential backoff
-│   │   └── dates.ts              # generateDateRange — date range generator
+│   │   ├── dates.ts              # generateDateRange — date range generator
+│   │   ├── priceHistory.ts       # Trend and best historical weekday
+│   │   ├── cpm.ts                # Centavo por milha calculation
+│   │   └── liveSearchCache.ts    # TTL cache for live searches
 │   └── __tests__/                # Unit tests (Jest)
 ├── data/
-│   ├── history.db                # Search history in SQLite (auto-committed by CI)
+│   ├── history.db                # Legacy local file; production uses Turso
 │   ├── health.json               # Daily health check control
-│   ├── news-seen.json            # Database of already sent news
-│   └── offers-seen.json          # Database of already sent offers
+│   └── offers-seen.json          # Legacy/local sent-offers control
+├── landing/
+│   ├── index.html                # Landing page
+│   └── dashboard.html            # Telegram Login authenticated dashboard
 ├── .github/
 │   └── workflows/
 │       ├── ci.yml                # CI — tests on push/PR
 │       ├── check-flights.yml     # Flight Tracker — cron 2x daily
 │       ├── check-news.yml        # News Tracker — cron 3x daily
-│       └── check-offers.yml      # Offers Tracker — cron every 2h
+│       ├── check-offers.yml      # Offers Tracker — cron every 2h
+│       ├── intelligence-report.yml # Daily intelligence report
+│       ├── personalized-radar.yml  # Per-user personalized radar
+│       └── deploy-dashboard.yml  # GitHub Pages dashboard deploy
 ├── .gitattributes                # Marks *.db as binary (prevents text diff on SQLite)
 ├── .env.example
 ├── package.json
@@ -303,18 +346,29 @@ _14 checks performed this week_
 
 ## Interactive Bot (Webhook)
 
-The project includes a webhook server to respond to commands directly via Telegram. Only messages from the configured `TELEGRAM_CHAT_ID` are accepted.
+The project includes a webhook server to respond to commands directly via Telegram. The bot is private, ignores groups/supergroups/channels, and uses multi-user authorization: the admin (`TELEGRAM_CHAT_ID`) is automatically authorized, new users remain pending, and the admin approves/rejects them with inline Telegram buttons.
 
 ### Available Commands
 
-- `/buscar [DESTINATION]` — Performs a real-time search for the given destination (e.g., `/buscar GRU`).
-- `/historico [DESTINATION]` — Shows the last 5 searches for that destination, allowing price tracking over time.
-- `/status` — Displays current tracker status, including origin, monitored destinations, and price threshold.
+- `/start` — Registers the user, starts the approval flow, and shows available commands.
+- `/meuid` — Shows the Telegram chat ID.
+- `/alerta ORIGIN DESTINATION DATE PRICE` — Creates a one-way alert. Example: `/alerta BSB GRU 20/07/2026 350`.
+- `/alerta ORIGIN DESTINATION DEPARTURE_DATE RETURN_DATE PRICE` — Creates a round-trip alert.
+- `/meusalertas` — Lists active alerts, including expired-alert warnings.
+- `/editar ID NEW_PRICE` — Updates an alert price ceiling.
+- `/remover ID` — Removes an alert.
+- `/buscar DESTINATION`, `/buscar ORIGIN DESTINATION`, or `/buscar ORIGIN DESTINATION DATE` — On-demand search with `ignoreMaxPrice`, showing the cheapest flights.
 - `/tendencia ORIGIN DESTINATION [DATE]` — Performs advanced statistical analysis and plots price trends from the last 30 entries of the route as an interactive line chart in Slate-800 Premium format via **QuickChart.io**. The response is delivered as an integrated balloon (chart + legend) containing:
   - **Direction and Variation**: Statistically determines if the price trend is up, down, or stable over the last 7 days.
   - **Extremes**: Displays the lowest price ever recorded in the database history and the latest tracked price.
   - **Ideal Buying Day**: Identifies the day of the week that is statistically cheapest for the route based on arithmetic historical averages.
   - **Resiliency Mechanism**: If the QuickChart API fails or times out, the bot dynamically falls back to a clean, text-based notification balloon.
+- `/perguntar BSB GRU vale a pena comprar agora?` — AI concierge combining history, trend, live search, cache, and OpenRouter to provide practical recommendations.
+- `/cpm ORIGIN DESTINATION MILES [CASH_PRICE]` — Calculates cents per mile using a provided cash price or the live lowest fare.
+- `/noticias` or `/ofertas` — Toggles news and offers notifications.
+- `/assinatura` — Shows trial/subscription status.
+- `/status` — Shows server status (admin).
+- `/autorizar ID`, `/ativar ID DAYS`, `/cancelar ID` — Access and subscription administration (admin).
 
 ### How to Run the Bot
 
@@ -355,7 +409,7 @@ The project integrates a complete web platform based on the design of *Google Bl
 
 ### Native Web Server Architecture
 - **Zero-Dependency**: The HTTP server is implemented natively using the integrated `node:http` module. No Express, Fastify, or external dependencies, ensuring zero cold-start times and high resource efficiency in serverless or lightweight container deployments.
-- **Integrated Persistence**: Direct integration with the native synchronous/asynchronous `node:sqlite` driver for extremely fast transactional operations to query history and configure alerts.
+- **Integrated Persistence**: Direct Turso/libSQL integration for history, alerts, users, subscriptions, seen news, and AI concierge usage.
 
 ### Cryptographic Security & Authentication
 - **HMAC Telegram Authentication**: The login flow is integrated with the official Telegram Login Widget. The authentication of frontend credentials (`id`, `first_name`, `username`, `auth_date`, `hash`) is verified on the backend by recalculating the HMAC-SHA256 of alphabetically sorted parameters using a key derived from `TELEGRAM_BOT_TOKEN` via a SHA-256 hash.
@@ -366,7 +420,7 @@ The project integrates a complete web platform based on the design of *Google Bl
 The backend maps native HTTP routes based on the session token retrieved from the request headers:
 - `GET /` — Serves the interactive Landing Page.
 - `GET /dashboard` — Renders the administrative dashboard control page for the authenticated user's alerts.
-- `GET /api/stats` — Aggregates global statistics directly from SQLite (`total_searches`, `cheapest_flight_ever`, `active_routes`).
+- `GET /api/stats` — Aggregates global Turso statistics (`totalChecks`, cheapest price, active routes, authorized users).
 - `GET /api/history` — Returns the serialized price history for the filtered route to populate client-side charts.
 - `GET /api/alerts` — Lists all monitoring rules registered for the logged-in user (based on the Telegram Chat ID extracted from the session).
 - `POST /api/alerts` — Creates a new monitoring trigger (`origin`, `destination`, `max_price_brl`, `departure_date`, `return_date`).
@@ -374,6 +428,7 @@ The backend maps native HTTP routes based on the session token retrieved from th
 - `DELETE /api/alerts` — Permanently deletes a registered alert.
 - `GET /api/auth/telegram` — Callback endpoint for cryptographic validation of the Telegram Login Widget.
 - `GET /api/auth/logout` — Clears the browser session cookie.
+- `POST /webhooks/cakto` — Receives Cakto events, validates the optional secret, and activates/cancels subscriptions.
 
 ### UI Google Blog Style (Material 3) & Reactivity
 - **Advanced & Modular CSS**: Fully responsive layout (Desktop/Mobile) featuring clean typography imported via Google Fonts (Outfit & Inter), soft borders with blur (`backdrop-filter`), elevated shadows, and elegant gradients.
@@ -387,7 +442,7 @@ The backend maps native HTTP routes based on the session token retrieved from th
 The tracker incorporates a statistical algorithm to identify extreme anomalies in airfare prices, commonly known as "fare glitches" or pricing bugs.
 
 ### Algorithm Mechanics
-1. **Specific Sample Collection**: For each identified flight, the system queries the SQLite database history for the exact route on the specific departure date (`getRoutePriceHistory(origin, destination, departure_date)`).
+1. **Specific Sample Collection**: For each identified flight, the system queries Turso history for the exact route on the specific departure date (`getRoutePriceHistory(origin, destination, departure_date)`).
 2. **Insufficient Sample Fallback**: The statistical detector requires a minimum of $N \ge 3$ historical records to compute averages. If the specific date lacks sufficient records, the algorithm automatically falls back to the complete route history (`getRoutePriceHistory(origin, destination)`).
 3. **Deviation Calculation & Trigger**: If sufficient historical data is present ($\ge 3$), the system calculates the simple arithmetic mean (`avgPrice`). A price "Glitch" is flagged if:
    $$\text{Current Price BRL} \le \text{avgPrice} \times (1 - \text{PRICE\_ERROR\_THRESHOLD})$$
@@ -397,6 +452,18 @@ The tracker incorporates a statistical algorithm to identify extreme anomalies i
 When a flight is classified as a Glitch, the standard alert notification rules are dynamically modified:
 - **Price Cap Bypass**: The bot triggers the alert even if the price exceeds the user's custom `max_price_brl` threshold. This ensures users do not miss massive price drops on premium or long-haul tickets that would otherwise be filtered out (e.g., a R$ 6,000.00 ticket plummeting to R$ 700.00).
 - **Exclusive Anti-Spam Control**: To avoid spamming subsequent searches that capture the same active glitch, subsequent glitch alerts are only triggered if the current price is *strictly lower* than the last registered glitch price.
+
+---
+
+## Intelligence and Personalized Radar
+
+In addition to immediate alerts, the app generates intelligence from accumulated history:
+
+- `npm run intelligence` generates `reports/daily-intelligence.md` and `reports/daily-intelligence.json` with a 0-100 score, recommendation (`buy`, `monitor`, `wait`), 30-day average, historical low, 7-day trend, and insufficient-data routes.
+- `npm run radar` reads active alerts, joins them with same-route/same-date history, and sends a personalized Telegram summary to each eligible user.
+- The radar classifies each alert as `Buy now`, `Wait`, `Monitor`, `Create/adjust alert`, or `Likely fare glitch`.
+- For regular users, the radar respects authorization + active trial/subscription. For the admin, active alerts are included even without a `subscriptions` row.
+- The radar does not call Apify/RapidAPI; it only uses data already stored in Turso, avoiding extra API cost.
 
 ---
 
@@ -412,7 +479,7 @@ For each origin in ORIGINS:
     │   ├── Try Apify (up to 3x with retry, token rotation on 402/403)
     │   ├── If it fails → try RapidAPI
     │   ├── Apply advanced filters
-    │   ├── Save to data/history.db (automatic pruning)
+    │   ├── Save to Turso history (automatic pruning)
     │   └── If below threshold AND drop ≥ PRICE_DROP_THRESHOLD → send alert
     │
     └── If multiple dates:
@@ -433,6 +500,10 @@ npm run dev          # Run the flight tracker once
 npm run news         # Run the miles news tracker
 npm run offers       # Run the travel offers tracker
 npm run webhook      # Start the interactive bot via webhook
+npm run dashboard    # Generate dist-pages/index.html for the static dashboard
+npm run intelligence # Generate daily Markdown/JSON reports in reports/
+npm run radar        # Send personalized Telegram radar
+npm run typecheck    # Run TypeScript type checking
 npm test             # Run all tests
 npm test -- --coverage  # Tests + coverage report
 npm run build        # Compile TypeScript to dist/
