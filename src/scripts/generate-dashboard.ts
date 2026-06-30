@@ -3,8 +3,12 @@ import path from "path";
 import dotenv from "dotenv";
 import { getFullHistory } from "../services/history";
 import { HistoryEntry } from "../types";
+import { withRetry } from "../utils/retry";
 
 dotenv.config();
+
+const HISTORY_FETCH_ATTEMPTS = 5;
+const HISTORY_FETCH_RETRY_DELAY_MS = 3000;
 
 /**
  * Script para gerar o Dashboard estático (HTML + JS)
@@ -12,7 +16,19 @@ dotenv.config();
  */
 async function generate() {
   console.log("[dashboard] Buscando dados do histórico...");
-  const history = await getFullHistory();
+  const history = await withRetry(
+    () => getFullHistory(),
+    HISTORY_FETCH_ATTEMPTS,
+    HISTORY_FETCH_RETRY_DELAY_MS,
+    (attempt, err) => {
+      if (attempt >= HISTORY_FETCH_ATTEMPTS) return;
+      console.warn(
+        `[dashboard] Falha ao buscar histórico (tentativa ${attempt}/${HISTORY_FETCH_ATTEMPTS}). ` +
+        `Tentando novamente...`,
+        err
+      );
+    }
+  );
   
   if (history.length === 0) {
     console.warn("[dashboard] Nenhum dado encontrado no histórico para gerar o dashboard.");
