@@ -24,8 +24,7 @@ async function generate() {
       if (attempt >= HISTORY_FETCH_ATTEMPTS) return;
       console.warn(
         `[dashboard] Falha ao buscar histórico (tentativa ${attempt}/${HISTORY_FETCH_ATTEMPTS}). ` +
-        `Tentando novamente...`,
-        err
+        `Tentando novamente... ${formatError(err)}`
       );
     }
   );
@@ -43,6 +42,14 @@ async function generate() {
   fs.writeFileSync(path.join(outputDir, "index.html"), html);
   console.log(`[dashboard] Dashboard gerado com sucesso em: ${path.join(outputDir, "index.html")}`);
   process.exit(0);
+}
+
+function formatError(err: unknown): string {
+  if (err instanceof Error) {
+    const code = "code" in err ? ` code=${String((err as { code?: unknown }).code)}` : "";
+    return `${err.name}: ${err.message}${code}`;
+  }
+  return String(err);
 }
 
 function template(history: HistoryEntry[]): string {

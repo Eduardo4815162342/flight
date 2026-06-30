@@ -1,7 +1,14 @@
 import { createClient, Client } from "@libsql/client";
+import { fetch as hranaFetch, Headers, Request } from "@libsql/hrana-client";
 import { config } from "../config";
 
 let _client: Client | null = null;
+
+function fetchWithoutCompression(request: Request): ReturnType<typeof hranaFetch> {
+  const headers = new Headers(request.headers);
+  headers.set("accept-encoding", "identity");
+  return hranaFetch(new Request(request, { headers }));
+}
 
 export function getDb(): Client {
   if (!_client) {
@@ -15,6 +22,7 @@ export function getDb(): Client {
     _client = createClient({
       url: url,
       authToken: authToken,
+      fetch: fetchWithoutCompression,
     });
   }
   return _client;
