@@ -204,7 +204,7 @@ Go to **Settings → Secrets and variables → Actions → Variables** and add:
 | `check-flights.yml` | Cron 08:00/20:00 BRT + manual | Scans flights, sends alerts, and stores history in Turso |
 | `check-news.yml` | Cron 3x daily | Monitors miles and points news |
 | `check-offers.yml` | Cron every 2 hours | Scans for new travel offers |
-| `intelligence-report.yml` | Daily 09:00 BRT cron + manual | Generates the daily intelligence report as Markdown/JSON |
+| `intelligence-report.yml` | Manual | Generates the intelligence report as Markdown/JSON when manually triggered |
 | `personalized-radar.yml` | Daily 09:15 BRT cron + manual | Sends personalized radar summaries to users with active alerts |
 | `deploy-dashboard.yml` | Daily 00:00 BRT cron + landing/dashboard push | Generates the static dashboard and deploys GitHub Pages |
 | `test-summarize.yml` | Manual | Smoke test for OpenRouter summarization |

@@ -1,9 +1,6 @@
 name: Intelligence Report
 
 on:
-  schedule:
-    # 09:00 BRT = 12:00 UTC, depois do check de voos das 08:00 BRT.
-    - cron: "0 12 * * *"
   workflow_dispatch:
 
 jobs:

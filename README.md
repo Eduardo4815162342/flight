@@ -204,7 +204,7 @@ Vá em **Settings → Secrets and variables → Actions → Variables** e adicio
 | `check-flights.yml` | Cron 08h/20h BRT + manual | Busca voos, envia alertas e salva histórico no Turso |
 | `check-news.yml` | Cron 3x ao dia | Monitora notícias de milhas e pontos |
 | `check-offers.yml` | Cron a cada 2 horas | Busca novas ofertas de passagens/viagens |
-| `intelligence-report.yml` | Cron diário 09:00 BRT + manual | Gera relatório diário de inteligência em Markdown/JSON |
+| `intelligence-report.yml` | Manual | Gera relatório de inteligência em Markdown/JSON quando acionado manualmente |
 | `personalized-radar.yml` | Cron diário 09:15 BRT + manual | Envia um radar personalizado para cada usuário com alertas ativos |
 | `deploy-dashboard.yml` | Cron diário 00:00 BRT + push em landing/dashboard | Gera dashboard estático e publica no GitHub Pages |
 | `test-summarize.yml` | Manual | Smoke test da sumarização OpenRouter |
