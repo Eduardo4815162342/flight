@@ -169,7 +169,7 @@ Configure em **Settings → Secrets and variables → Actions**:
 - Secrets: `TELEGRAM_BOT_TOKEN` e `TELEGRAM_CHAT_ID`.
 - Variables opcionais: `FLIGHT_ORIGINS`, `FLIGHT_ARRIVAL_AIRPORTS`, `FLIGHT_RETURN_AIRPORTS` e `FLIGHT_MAX_PRICE_BRL`.
 
-Os padrões já estão preparados para a viagem: `GRU,VCP`, chegada e retorno por `MRS,NCE,LYS,BCN,MAD,LIS,OPO`, ida de 4 a 7 de janeiro de 2027 e volta de 16 a 19 de janeiro de 2027. A consulta é não-oficial e pode precisar de manutenção se o Google alterar o formato dos resultados. Para Barcelona, Madrid, Lisboa e Porto, confira o deslocamento terrestre até Marselha antes de comprar.
+Os padrões já estão preparados para a viagem: `GRU,VCP`, chegada e retorno por `MRS,NCE,LYS,BCN,MAD,LIS,OPO,CDG,ORY`, ida de 4 a 7 de janeiro de 2027 e volta de 16 a 19 de janeiro de 2027. A consulta é não-oficial e pode precisar de manutenção se o Google alterar o formato dos resultados. Para Barcelona, Madrid, Lisboa, Porto e Paris, confira o deslocamento terrestre até Marselha antes de comprar.
 
 ### Secrets necessários
 
