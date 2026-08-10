@@ -9,7 +9,8 @@
     "airline": "Tap Air Portugal",
     "departure": "",
     "arrival_time": "",
-    "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+NCE+on+2027-01-05"
+    "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+NCE+on+2027-01-05",
+    "last_notified_signature": "GRU|NCE|2027-01-05|2027-01-19|Tap Air Portugal|6374.0|1"
   },
   "GRU-BCN-2027-01-07-2027-01-18": {
     "origin": "GRU",
@@ -23,5 +24,84 @@
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+BCN+on+2027-01-07",
     "last_notified_signature": "GRU|BCN|2027-01-07|2027-01-18|Tap Air Portugal|5158.0|1"
+  },
+  "_last_report_signature": "GRU|BCN|2027-01-07|2027-01-18|Tap Air Portugal|5158.0|1||GRU|CDG|2027-01-06|2027-01-17|WestJet|5356.0|0||GRU|MAD|2027-01-05|2027-01-18|Tap Air Portugal|5682.0|1||GRU|NCE|2027-01-05|2027-01-19|Tap Air Portugal|6374.0|1||GRU|LIS|2027-01-07|2027-01-16|Tap Air Portugal|6385.0|0||GRU|MRS|2027-01-05|2027-01-16|Tap Air Portugal|6834.0|0||GRU|OPO|2027-01-06|2027-01-18|Ethiopian|7044.0|1||GRU|LYS|2027-01-05|2027-01-16|Tap Air Portugal|7884.0|0",
+  "GRU-CDG-2027-01-06-2027-01-17": {
+    "origin": "GRU",
+    "arrival": "CDG",
+    "outbound": "2027-01-06",
+    "inbound": "2027-01-17",
+    "price": 5356.0,
+    "stops": 0,
+    "airline": "WestJet",
+    "departure": "",
+    "arrival_time": "",
+    "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+CDG+on+2027-01-06",
+    "last_notified_signature": "GRU|CDG|2027-01-06|2027-01-17|WestJet|5356.0|0"
+  },
+  "GRU-MAD-2027-01-05-2027-01-18": {
+    "origin": "GRU",
+    "arrival": "MAD",
+    "outbound": "2027-01-05",
+    "inbound": "2027-01-18",
+    "price": 5682.0,
+    "stops": 1,
+    "airline": "Tap Air Portugal",
+    "departure": "",
+    "arrival_time": "",
+    "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+MAD+on+2027-01-05",
+    "last_notified_signature": "GRU|MAD|2027-01-05|2027-01-18|Tap Air Portugal|5682.0|1"
+  },
+  "GRU-LIS-2027-01-07-2027-01-16": {
+    "origin": "GRU",
+    "arrival": "LIS",
+    "outbound": "2027-01-07",
+    "inbound": "2027-01-16",
+    "price": 6385.0,
+    "stops": 0,
+    "airline": "Tap Air Portugal",
+    "departure": "",
+    "arrival_time": "",
+    "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+LIS+on+2027-01-07",
+    "last_notified_signature": "GRU|LIS|2027-01-07|2027-01-16|Tap Air Portugal|6385.0|0"
+  },
+  "GRU-MRS-2027-01-05-2027-01-16": {
+    "origin": "GRU",
+    "arrival": "MRS",
+    "outbound": "2027-01-05",
+    "inbound": "2027-01-16",
+    "price": 6834.0,
+    "stops": 0,
+    "airline": "Tap Air Portugal",
+    "departure": "",
+    "arrival_time": "",
+    "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+MRS+on+2027-01-05",
+    "last_notified_signature": "GRU|MRS|2027-01-05|2027-01-16|Tap Air Portugal|6834.0|0"
+  },
+  "GRU-OPO-2027-01-06-2027-01-18": {
+    "origin": "GRU",
+    "arrival": "OPO",
+    "outbound": "2027-01-06",
+    "inbound": "2027-01-18",
+    "price": 7044.0,
+    "stops": 1,
+    "airline": "Ethiopian",
+    "departure": "",
+    "arrival_time": "",
+    "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+OPO+on+2027-01-06",
+    "last_notified_signature": "GRU|OPO|2027-01-06|2027-01-18|Ethiopian|7044.0|1"
+  },
+  "GRU-LYS-2027-01-05-2027-01-16": {
+    "origin": "GRU",
+    "arrival": "LYS",
+    "outbound": "2027-01-05",
+    "inbound": "2027-01-16",
+    "price": 7884.0,
+    "stops": 0,
+    "airline": "Tap Air Portugal",
+    "departure": "",
+    "arrival_time": "",
+    "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+LYS+on+2027-01-05",
+    "last_notified_signature": "GRU|LYS|2027-01-05|2027-01-16|Tap Air Portugal|7884.0|0"
   }
 }
