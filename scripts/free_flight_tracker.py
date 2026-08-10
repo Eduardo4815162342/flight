@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+from html import escape
 from datetime import date, timedelta
 from pathlib import Path
 from typing import Any
@@ -113,7 +114,8 @@ def send_telegram(message: str):
     token = os.environ["TELEGRAM_BOT_TOKEN"]
     chat_id = os.environ["TELEGRAM_CHAT_ID"]
     response = requests.post(f"https://api.telegram.org/bot{token}/sendMessage", json={"chat_id": chat_id, "text": message, "parse_mode": "HTML", "disable_web_page_preview": True}, timeout=30)
-    response.raise_for_status()
+    if not response.ok:
+        raise RuntimeError(f"Telegram HTTP {response.status_code}: {response.text}")
 
 
 def format_brl(value: float) -> str:
@@ -168,7 +170,7 @@ def main():
                    f"Ida: {best['outbound']} · Volta: {best['inbound']}\n"
                    f"Preço: <b>{format_brl(best['price'])}</b>\n"
                    f"Escalas: {best['stops']}\n"
-                   f"Companhia: {best['airline']}\n"
+                   f"Companhia: {escape(str(best['airline']))}\n"
                    f"<a href=\"{best['link']}\">Abrir no Google Flights</a>")
         send_telegram(message)
         history[key]["last_notified_signature"] = signature
