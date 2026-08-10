@@ -27,6 +27,11 @@ RETURN_END = date.fromisoformat(os.getenv("FLIGHT_RETURN_END", "2027-01-19"))
 MAX_PRICE = float(os.getenv("FLIGHT_MAX_PRICE_BRL", "6000"))
 MAX_STOPS = int(os.getenv("FLIGHT_MAX_STOPS", "2"))
 SEND_SUMMARY = os.getenv("FLIGHT_SEND_SUMMARY", "false").lower() == "true"
+CITY_NAMES = {
+    "MRS": "Marselha", "NCE": "Nice", "LYS": "Lyon", "BCN": "Barcelona",
+    "MAD": "Madrid", "LIS": "Lisboa", "OPO": "Porto", "CDG": "Paris",
+    "ORY": "Paris",
+}
 HISTORY_FILE = Path(os.getenv("FLIGHT_HISTORY_FILE", "data/free-flight-history.json"))
 
 
@@ -122,6 +127,10 @@ def format_brl(value: float) -> str:
     return f"R$ {value:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
 
+def format_date(value: str) -> str:
+    return date.fromisoformat(value).strftime("%d/%m")
+
+
 def offer_signature(offer: dict[str, Any]) -> str:
     fields = (
         offer.get("origin"), offer.get("arrival"), offer.get("outbound"),
@@ -150,34 +159,44 @@ def main():
     if not found:
         print("Nenhuma opção encontrada.")
         return
-    best = min(found, key=lambda x: x["price"])
-    key = f"{best['origin']}-{best['arrival']}-{best['outbound']}-{best['inbound']}"
-    previous_entry = history.get(key, {})
-    previous = previous_entry.get("price")
-    previous_signature = previous_entry.get("last_notified_signature")
-    signature = offer_signature(best)
-    history[key] = {**best, "last_notified_signature": previous_signature}
+    # Uma opção vencedora por cidade, considerando todas as datas pesquisadas.
+    by_city: dict[str, dict[str, Any]] = {}
+    for item in found:
+        city = item["arrival"]
+        if city not in by_city or item["price"] < by_city[city]["price"]:
+            by_city[city] = item
+    best_by_city = sorted(by_city.values(), key=lambda x: x["price"])
+    report_signature = "||".join(offer_signature(item) for item in best_by_city)
+    previous_report_signature = history.get("_last_report_signature")
+    history["_last_report_signature"] = report_signature
+    for item in best_by_city:
+        key = f"{item['origin']}-{item['arrival']}-{item['outbound']}-{item['inbound']}"
+        history[key] = {**item, "last_notified_signature": offer_signature(item)}
     HISTORY_FILE.parent.mkdir(parents=True, exist_ok=True)
     HISTORY_FILE.write_text(json.dumps(history, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    should_send = (
-        signature != previous_signature
-        and (SEND_SUMMARY or (best["price"] <= MAX_PRICE and (previous is None or best["price"] < previous)))
+    should_send = report_signature != previous_report_signature and (
+        SEND_SUMMARY or any(item["price"] <= MAX_PRICE for item in best_by_city)
     )
     if should_send:
-        message = (f"✈️ <b>Nova melhor opção encontrada</b>\n\n"
-                   f"{best['origin']} → {best['arrival']}\n"
-                   f"Ida: {best['outbound']} · Volta: {best['inbound']}\n"
-                   f"Preço: <b>{format_brl(best['price'])}</b>\n"
-                   f"Escalas: {best['stops']}\n"
-                   f"Companhia: {escape(str(best['airline']))}\n"
-                   f"<a href=\"{best['link']}\">Abrir no Google Flights</a>")
+        lines = ["✈️ <b>Melhores opções por cidade</b>", ""]
+        for item in best_by_city:
+            city = escape(CITY_NAMES.get(item["arrival"], item["arrival"]))
+            stops = item["stops"]
+            stop_label = "parada" if stops == 1 else "paradas"
+            lines.extend([
+                f"<b>{city}</b> - {format_date(item['outbound'])} a {format_date(item['inbound'])} - "
+                f"{escape(str(item['airline']))} - {stops} {stop_label} - <b>{format_brl(item['price'])}</b>",
+                f"Link: {item['link']}",
+                "",
+            ])
+        message = "\n".join(lines).strip()
         send_telegram(message)
-        history[key]["last_notified_signature"] = signature
+        history["_last_report_signature"] = report_signature
         HISTORY_FILE.write_text(json.dumps(history, ensure_ascii=False, indent=2), encoding="utf-8")
         print("Alerta enviado ao Telegram.")
     else:
-        print(f"Melhor preço: {format_brl(best['price'])}; nenhum alerta necessário.")
+        print("Relatório sem alterações relevantes; nenhum alerta necessário.")
 
 
 if __name__ == "__main__":
