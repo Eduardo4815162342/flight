@@ -120,6 +120,15 @@ def format_brl(value: float) -> str:
     return f"R$ {value:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
 
+def offer_signature(offer: dict[str, Any]) -> str:
+    fields = (
+        offer.get("origin"), offer.get("arrival"), offer.get("outbound"),
+        offer.get("inbound"), offer.get("airline"), offer.get("price"),
+        offer.get("stops"),
+    )
+    return "|".join(str(value) for value in fields)
+
+
 def main():
     history = load_history()
     found = []
@@ -141,12 +150,19 @@ def main():
         return
     best = min(found, key=lambda x: x["price"])
     key = f"{best['origin']}-{best['arrival']}-{best['outbound']}-{best['inbound']}"
-    previous = history.get(key, {}).get("price")
-    history[key] = best
+    previous_entry = history.get(key, {})
+    previous = previous_entry.get("price")
+    previous_signature = previous_entry.get("last_notified_signature")
+    signature = offer_signature(best)
+    history[key] = {**best, "last_notified_signature": previous_signature}
     HISTORY_FILE.parent.mkdir(parents=True, exist_ok=True)
     HISTORY_FILE.write_text(json.dumps(history, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    if SEND_SUMMARY or (best["price"] <= MAX_PRICE and (previous is None or best["price"] < previous)):
+    should_send = (
+        signature != previous_signature
+        and (SEND_SUMMARY or (best["price"] <= MAX_PRICE and (previous is None or best["price"] < previous)))
+    )
+    if should_send:
         message = (f"✈️ <b>Nova melhor opção encontrada</b>\n\n"
                    f"{best['origin']} → {best['arrival']}\n"
                    f"Ida: {best['outbound']} · Volta: {best['inbound']}\n"
@@ -155,6 +171,8 @@ def main():
                    f"Companhia: {best['airline']}\n"
                    f"<a href=\"{best['link']}\">Abrir no Google Flights</a>")
         send_telegram(message)
+        history[key]["last_notified_signature"] = signature
+        HISTORY_FILE.write_text(json.dumps(history, ensure_ascii=False, indent=2), encoding="utf-8")
         print("Alerta enviado ao Telegram.")
     else:
         print(f"Melhor preço: {format_brl(best['price'])}; nenhum alerta necessário.")
