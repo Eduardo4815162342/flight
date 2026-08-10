@@ -1,0 +1,14 @@
+{
+  "GRU-NCE-2027-01-05-2027-01-19": {
+    "origin": "GRU",
+    "arrival": "NCE",
+    "outbound": "2027-01-05",
+    "inbound": "2027-01-19",
+    "price": 1254.0,
+    "stops": 1,
+    "airline": "Tap Air Portugal",
+    "departure": "",
+    "arrival_time": "",
+    "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+NCE+on+2027-01-05"
+  }
+}
