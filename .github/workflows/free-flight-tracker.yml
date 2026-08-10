@@ -28,6 +28,7 @@ jobs:
           FLIGHT_ARRIVAL_AIRPORTS: ${{ vars.FLIGHT_ARRIVAL_AIRPORTS || 'MRS,NCE,LYS' }}
           FLIGHT_RETURN_AIRPORTS: ${{ vars.FLIGHT_RETURN_AIRPORTS || 'MRS,NCE,LYS' }}
           FLIGHT_MAX_PRICE_BRL: ${{ vars.FLIGHT_MAX_PRICE_BRL || '6000' }}
+          FLIGHT_SEND_SUMMARY: ${{ github.event_name == 'workflow_dispatch' && 'true' || 'false' }}
         run: python scripts/free_flight_tracker.py
       - name: Save price history
         run: |

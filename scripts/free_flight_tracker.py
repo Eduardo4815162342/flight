@@ -25,6 +25,7 @@ RETURN_START = date.fromisoformat(os.getenv("FLIGHT_RETURN_START", "2027-01-16")
 RETURN_END = date.fromisoformat(os.getenv("FLIGHT_RETURN_END", "2027-01-19"))
 MAX_PRICE = float(os.getenv("FLIGHT_MAX_PRICE_BRL", "6000"))
 MAX_STOPS = int(os.getenv("FLIGHT_MAX_STOPS", "2"))
+SEND_SUMMARY = os.getenv("FLIGHT_SEND_SUMMARY", "false").lower() == "true"
 HISTORY_FILE = Path(os.getenv("FLIGHT_HISTORY_FILE", "data/free-flight-history.json"))
 
 
@@ -139,7 +140,7 @@ def main():
     HISTORY_FILE.parent.mkdir(parents=True, exist_ok=True)
     HISTORY_FILE.write_text(json.dumps(history, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    if best["price"] <= MAX_PRICE and (previous is None or best["price"] < previous):
+    if SEND_SUMMARY or (best["price"] <= MAX_PRICE and (previous is None or best["price"] < previous)):
         message = (f"✈️ <b>Nova melhor opção encontrada</b>\n\n"
                    f"{best['origin']} → {best['arrival']}\n"
                    f"Ida: {best['outbound']} · Volta: {best['inbound']}\n"
