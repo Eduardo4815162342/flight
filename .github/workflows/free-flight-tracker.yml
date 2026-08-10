@@ -34,6 +34,8 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/free-flight-history.json
+          # data/*.json é ignorado pelo projeto legado; este histórico é
+          # intencionalmente persistido para o tracker gratuito.
+          git add -f data/free-flight-history.json
           git diff --cached --quiet || git commit -m "chore: update free flight price history"
           git push

@@ -114,6 +114,10 @@ def send_telegram(message: str):
     response.raise_for_status()
 
 
+def format_brl(value: float) -> str:
+    return f"R$ {value:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+
 def main():
     history = load_history()
     found = []
@@ -144,14 +148,14 @@ def main():
         message = (f"✈️ <b>Nova melhor opção encontrada</b>\n\n"
                    f"{best['origin']} → {best['arrival']}\n"
                    f"Ida: {best['outbound']} · Volta: {best['inbound']}\n"
-                   f"Preço: <b>R$ {best['price']:,.2f}</b>\n"
+                   f"Preço: <b>{format_brl(best['price'])}</b>\n"
                    f"Escalas: {best['stops']}\n"
                    f"Companhia: {best['airline']}\n"
                    f"<a href=\"{best['link']}\">Abrir no Google Flights</a>")
         send_telegram(message)
         print("Alerta enviado ao Telegram.")
     else:
-        print(f"Melhor preço: R$ {best['price']:.2f}; nenhum alerta necessário.")
+        print(f"Melhor preço: {format_brl(best['price'])}; nenhum alerta necessário.")
 
 
 if __name__ == "__main__":
