@@ -162,7 +162,7 @@ def main():
     # Uma opção vencedora por cidade, considerando todas as datas pesquisadas.
     by_city: dict[str, dict[str, Any]] = {}
     for item in found:
-        city = item["arrival"]
+        city = CITY_NAMES.get(item["arrival"], item["arrival"])
         if city not in by_city or item["price"] < by_city[city]["price"]:
             by_city[city] = item
     best_by_city = sorted(by_city.values(), key=lambda x: x["price"])
