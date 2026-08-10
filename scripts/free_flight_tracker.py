@@ -58,6 +58,7 @@ def search(origin: str, arrival: str, outbound: str, inbound: str) -> dict[str, 
         seat="economy",
         passengers=Passengers(adults=1),
         language="pt-BR",
+        currency="BRL",
     )
     result = get_flights(query)
     # fast-flights 3.x retorna um ResultList; versões anteriores podiam
@@ -85,6 +86,7 @@ def search(origin: str, arrival: str, outbound: str, inbound: str) -> dict[str, 
             stops = 99
         if stops <= MAX_STOPS:
             candidates.append({
+                # A moeda é solicitada explicitamente como BRL na query.
                 "price": price,
                 "stops": stops,
                 "airline": ", ".join(get_value(flight, "airlines", default=[])) or get_value(flight, "name", "airline", "airline_name", default="desconhecida"),
