@@ -187,7 +187,7 @@ def main():
             lines.extend([
                 f"<b>{city}</b> - {format_date(item['outbound'])} a {format_date(item['inbound'])} - "
                 f"{escape(str(item['airline']))} - {stops} {stop_label} - <b>{format_brl(item['price'])}</b>",
-                f"Link: {item['link']}",
+                f"<a href=\"{escape(str(item['link']), quote=True)}\">Abrir no Google Flights</a>",
                 "",
             ])
         message = "\n".join(lines).strip()
