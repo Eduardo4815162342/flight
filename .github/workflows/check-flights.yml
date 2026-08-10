@@ -1,12 +1,7 @@
 name: Check Flights
 
 on:
-  schedule:
-    # 08:00 BRT = 11:00 UTC
-    - cron: "0 11 * * *"
-    # 20:00 BRT = 23:00 UTC
-    - cron: "0 23 * * *"
-  workflow_dispatch:
+  workflow_dispatch: # mantido apenas para execução manual
 
 jobs:
   check:

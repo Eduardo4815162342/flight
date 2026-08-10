@@ -1,9 +1,7 @@
 name: Check Offers
 
 on:
-  schedule:
-    - cron: "0 */2 * * *" # a cada 2 horas
-  workflow_dispatch: # permite rodar manualmente pelo GitHub
+  workflow_dispatch: # mantido apenas para execução manual
 
 jobs:
   offers:

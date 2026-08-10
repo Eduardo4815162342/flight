@@ -1,10 +1,7 @@
 name: Personalized Radar
 
 on:
-  schedule:
-    # 09:15 BRT = 12:15 UTC, depois do check de voos das 08:00 BRT.
-    - cron: "15 12 * * *"
-  workflow_dispatch:
+  workflow_dispatch: # mantido apenas para execução manual
 
 jobs:
   send:

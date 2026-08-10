@@ -1,14 +1,7 @@
 name: Check News
 
 on:
-  schedule:
-    # 08:00 BRT = 11:00 UTC
-    - cron: "0 11 * * *"
-    # 13:00 BRT = 16:00 UTC
-    - cron: "0 16 * * *"
-    # 20:00 BRT = 23:00 UTC
-    - cron: "0 23 * * *"
-  workflow_dispatch: # permite rodar manualmente pelo GitHub
+  workflow_dispatch: # mantido apenas para execução manual
 
 jobs:
   news:
