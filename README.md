@@ -160,6 +160,17 @@ HISTORY_RETENTION_DAYS=180
 
 ## GitHub Actions
 
+### Monitor gratuito para a viagem de Marselha
+
+O workflow `free-flight-tracker.yml` usa a biblioteca open source `fast-flights` para consultar o Google Flights sem Apify, RapidAPI ou outro serviço pago. Ele roda duas vezes ao dia no GitHub Actions, salva o histórico em `data/free-flight-history.json` e envia alertas pelo Telegram.
+
+Configure em **Settings → Secrets and variables → Actions**:
+
+- Secrets: `TELEGRAM_BOT_TOKEN` e `TELEGRAM_CHAT_ID`.
+- Variables opcionais: `FLIGHT_ORIGINS`, `FLIGHT_ARRIVAL_AIRPORTS`, `FLIGHT_RETURN_AIRPORTS` e `FLIGHT_MAX_PRICE_BRL`.
+
+Os padrões já estão preparados para a viagem: `GRU,VCP`, chegada em `MRS,NCE,LYS`, retorno por `MRS,NCE,LYS`, ida de 4 a 7 de janeiro de 2027 e volta de 16 a 19 de janeiro de 2027. A consulta é não-oficial e pode precisar de manutenção se o Google alterar o formato dos resultados.
+
 ### Secrets necessários
 
 Vá em **Settings → Secrets and variables → Actions → Secrets** e adicione:
