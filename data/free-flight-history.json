@@ -21,6 +21,7 @@
     "airline": "Tap Air Portugal",
     "departure": "",
     "arrival_time": "",
-    "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+BCN+on+2027-01-07"
+    "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+BCN+on+2027-01-07",
+    "last_notified_signature": "GRU|BCN|2027-01-07|2027-01-18|Tap Air Portugal|5158.0|1"
   }
 }
