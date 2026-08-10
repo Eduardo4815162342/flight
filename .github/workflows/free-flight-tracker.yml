@@ -3,9 +3,12 @@ name: Free flight tracker
 on:
   workflow_dispatch:
   schedule:
-    # GitHub agenda em UTC; duas consultas diárias, com baixa frequência.
-    - cron: "17 11 * * *"
-    - cron: "17 23 * * *"
+    # Horários de Cuiabá (UTC-4): 04:00, 08:00, 13:00, 17:30 e 20:00.
+    - cron: "0 8 * * *"    # 04:00 BRT/MT
+    - cron: "0 12 * * *"   # 08:00 BRT/MT
+    - cron: "0 17 * * *"   # 13:00 BRT/MT
+    - cron: "30 21 * * *"  # 17:30 BRT/MT
+    - cron: "0 0 * * *"    # 20:00 BRT/MT
 
 permissions:
   contents: write
