@@ -20,7 +20,7 @@ from fast_flights import FlightQuery, Passengers, create_query, get_flights
 ORIGINS = [x.strip() for x in os.getenv("FLIGHT_ORIGINS", "GRU,VCP").split(",") if x.strip()]
 ARRIVAL_AIRPORTS = [x.strip() for x in os.getenv("FLIGHT_ARRIVAL_AIRPORTS", "MRS,NCE,LYS").split(",") if x.strip()]
 RETURN_AIRPORTS = [x.strip() for x in os.getenv("FLIGHT_RETURN_AIRPORTS", "MRS,NCE,LYS").split(",") if x.strip()]
-DEPARTURE_START = date.fromisoformat(os.getenv("FLIGHT_DEPARTURE_START", "2027-01-04"))
+DEPARTURE_START = date.fromisoformat(os.getenv("FLIGHT_DEPARTURE_START", "2027-01-02"))
 DEPARTURE_END = date.fromisoformat(os.getenv("FLIGHT_DEPARTURE_END", "2027-01-07"))
 RETURN_START = date.fromisoformat(os.getenv("FLIGHT_RETURN_START", "2027-01-16"))
 RETURN_END = date.fromisoformat(os.getenv("FLIGHT_RETURN_END", "2027-01-19"))
@@ -54,6 +54,27 @@ def get_value(item: Any, *names: str, default: Any = None):
     return default
 
 
+def duration_minutes(segments: list[Any]) -> int | None:
+    if not segments:
+        return None
+    first = segments[0]
+    last = segments[-1]
+    departure = get_value(first, "departure")
+    arrival = get_value(last, "arrival")
+    dep_date = get_value(departure, "date")
+    dep_time = get_value(departure, "time")
+    arr_date = get_value(arrival, "date")
+    arr_time = get_value(arrival, "time")
+    if not all((dep_date, dep_time, arr_date, arr_time)):
+        return None
+    try:
+        start = date(*dep_date).toordinal() * 1440 + dep_time[0] * 60 + dep_time[1]
+        end = date(*arr_date).toordinal() * 1440 + arr_time[0] * 60 + arr_time[1]
+        return max(0, end - start)
+    except (TypeError, IndexError, ValueError):
+        return None
+
+
 def search(origin: str, arrival: str, outbound: str, inbound: str) -> dict[str, Any] | None:
     query = create_query(
         flights=[
@@ -83,9 +104,9 @@ def search(origin: str, arrival: str, outbound: str, inbound: str) -> dict[str, 
         except ValueError:
             continue
         segments = get_value(flight, "flights", default=[]) or []
-        # Para ida e volta, o pacote entrega os segmentos concatenados. O
-        # cálculo conservador abaixo evita aceitar itinerários muito longos.
-        stops = get_value(flight, "stops", "stops_count", default=max(0, len(segments) - 2))
+        # O resultado representa o trecho exibido pelo Google Flights:
+        # segmentos - 1 é o número real de conexões desse trecho.
+        stops = get_value(flight, "stops", "stops_count", default=max(0, len(segments) - 1))
         try:
             stops = int(stops)
         except (TypeError, ValueError):
@@ -95,6 +116,7 @@ def search(origin: str, arrival: str, outbound: str, inbound: str) -> dict[str, 
                 # A moeda é solicitada explicitamente como BRL na query.
                 "price": price,
                 "stops": stops,
+                "duration_minutes": duration_minutes(segments),
                 "airline": ", ".join(get_value(flight, "airlines", default=[])) or get_value(flight, "name", "airline", "airline_name", default="desconhecida"),
                 "departure": get_value(flight, "departure", "departure_time", default=""),
                 "arrival_time": get_value(flight, "arrival", "arrival_time", default=""),
@@ -129,6 +151,13 @@ def format_brl(value: float) -> str:
 
 def format_date(value: str) -> str:
     return date.fromisoformat(value).strftime("%d/%m")
+
+
+def format_duration(minutes: int | None) -> str:
+    if minutes is None:
+        return "duração indisponível"
+    hours, remainder = divmod(minutes, 60)
+    return f"{hours}h{remainder:02d}"
 
 
 def offer_signature(offer: dict[str, Any]) -> str:
@@ -186,7 +215,8 @@ def main():
             stop_label = "parada" if stops == 1 else "paradas"
             lines.extend([
                 f"<b>{city}</b> - {format_date(item['outbound'])} a {format_date(item['inbound'])} - "
-                f"{escape(str(item['airline']))} - {stops} {stop_label} - <b>{format_brl(item['price'])}</b>",
+                f"{escape(str(item['airline']))} - {stops} {stop_label} - {format_duration(item.get('duration_minutes'))} - "
+                f"<b>{format_brl(item['price'])}</b>",
                 f"<a href=\"{escape(str(item['link']), quote=True)}\">Abrir no Google Flights</a>",
                 "",
             ])
