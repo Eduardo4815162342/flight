@@ -241,14 +241,16 @@ def main():
         SEND_SUMMARY or any(item["price"] <= MAX_PRICE for item in selected_items)
     )
     if should_send:
-        lines = ["✈️ <b>Melhores opções por cidade</b>", ""]
+        lines = ["✈️ <b>Melhores opções por destino</b>", ""]
         for city_name, cheapest, best_value in selections:
             city = escape(city_name)
             item = cheapest
             stops = item["stops"]
             stop_label = "parada" if stops == 1 else "paradas"
             lines.extend([
-                f"<b>{city}</b> - {format_date(item['outbound'])} a {format_date(item['inbound'])} - "
+                f"━━━━━━━━━━━━━━━━━━\n<b>📍 {city}</b>\n\n"
+                f"<b>💰 Mais barata</b>\n"
+                f"{format_date(item['outbound'])} a {format_date(item['inbound'])} - "
                 f"{escape(str(item['airline']))} - {stops} {stop_label} - {format_duration(item.get('duration_minutes'))} - "
                 f"<b>{format_brl(item['price'])}</b>",
                 f"<a href=\"{escape(str(item['link']), quote=True)}\">Abrir no Google Flights</a>",
@@ -258,7 +260,8 @@ def main():
                 stops = best_value["stops"]
                 stop_label = "parada" if stops == 1 else "paradas"
                 lines.extend([
-                    f"↳ <b>Melhor custo-benefício</b>: {format_date(best_value['outbound'])} a {format_date(best_value['inbound'])} - "
+                    f"<b>⚖️ Melhor custo-benefício</b>\n"
+                    f"{format_date(best_value['outbound'])} a {format_date(best_value['inbound'])} - "
                     f"{escape(str(best_value['airline']))} - {stops} {stop_label} - {format_duration(best_value.get('duration_minutes'))} - "
                     f"<b>{format_brl(best_value['price'])}</b>",
                     f"<a href=\"{escape(str(best_value['link']), quote=True)}\">Abrir no Google Flights</a>",
