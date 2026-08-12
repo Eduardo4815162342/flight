@@ -182,6 +182,21 @@ def offer_signature(offer: dict[str, Any]) -> str:
     return "|".join(str(value) for value in fields)
 
 
+def cost_benefit_score(offer: dict[str, Any], candidates: list[dict[str, Any]]) -> float:
+    """Índice menor = melhor equilíbrio entre preço e duração.
+
+    Normaliza preço e tempo dentro das opções da mesma cidade para que as
+    duas dimensões tenham peso equivalente.
+    """
+    prices = [item["price"] for item in candidates]
+    durations = [item["duration_minutes"] for item in candidates]
+    price_range = max(prices) - min(prices) or 1
+    duration_range = max(durations) - min(durations) or 1
+    price_score = (offer["price"] - min(prices)) / price_range
+    duration_score = (offer["duration_minutes"] - min(durations)) / duration_range
+    return (price_score + duration_score) / 2
+
+
 def main():
     history = load_history()
     found = []
@@ -201,29 +216,35 @@ def main():
     if not found:
         print("Nenhuma opção encontrada.")
         return
-    # Uma opção vencedora por cidade, considerando todas as datas pesquisadas.
-    by_city: dict[str, dict[str, Any]] = {}
+    # Seleciona a opção mais barata e a melhor relação custo-benefício por cidade.
+    city_candidates: dict[str, list[dict[str, Any]]] = {}
     for item in found:
         city = CITY_NAMES.get(item["arrival"], item["arrival"])
-        if city not in by_city or item["price"] < by_city[city]["price"]:
-            by_city[city] = item
-    best_by_city = sorted(by_city.values(), key=lambda x: x["price"])
-    report_signature = "||".join(offer_signature(item) for item in best_by_city)
+        city_candidates.setdefault(city, []).append(item)
+    selections = []
+    for city, candidates in city_candidates.items():
+        cheapest = min(candidates, key=lambda x: x["price"])
+        best_value = min(candidates, key=lambda x: cost_benefit_score(x, candidates))
+        selections.append((city, cheapest, best_value))
+    selections.sort(key=lambda item: item[1]["price"])
+    selected_items = [item for selection in selections for item in selection[1:]]
+    report_signature = "||".join(offer_signature(item) for item in selected_items)
     previous_report_signature = history.get("_last_report_signature")
     history["_last_report_signature"] = report_signature
-    for item in best_by_city:
+    for item in selected_items:
         key = f"{item['origin']}-{item['arrival']}-{item['outbound']}-{item['inbound']}"
         history[key] = {**item, "last_notified_signature": offer_signature(item)}
     HISTORY_FILE.parent.mkdir(parents=True, exist_ok=True)
     HISTORY_FILE.write_text(json.dumps(history, ensure_ascii=False, indent=2), encoding="utf-8")
 
     should_send = report_signature != previous_report_signature and (
-        SEND_SUMMARY or any(item["price"] <= MAX_PRICE for item in best_by_city)
+        SEND_SUMMARY or any(item["price"] <= MAX_PRICE for item in selected_items)
     )
     if should_send:
         lines = ["✈️ <b>Melhores opções por cidade</b>", ""]
-        for item in best_by_city:
-            city = escape(CITY_NAMES.get(item["arrival"], item["arrival"]))
+        for city_name, cheapest, best_value in selections:
+            city = escape(city_name)
+            item = cheapest
             stops = item["stops"]
             stop_label = "parada" if stops == 1 else "paradas"
             lines.extend([
@@ -233,6 +254,16 @@ def main():
                 f"<a href=\"{escape(str(item['link']), quote=True)}\">Abrir no Google Flights</a>",
                 "",
             ])
+            if offer_signature(best_value) != offer_signature(cheapest):
+                stops = best_value["stops"]
+                stop_label = "parada" if stops == 1 else "paradas"
+                lines.extend([
+                    f"↳ <b>Melhor custo-benefício</b>: {format_date(best_value['outbound'])} a {format_date(best_value['inbound'])} - "
+                    f"{escape(str(best_value['airline']))} - {stops} {stop_label} - {format_duration(best_value.get('duration_minutes'))} - "
+                    f"<b>{format_brl(best_value['price'])}</b>",
+                    f"<a href=\"{escape(str(best_value['link']), quote=True)}\">Abrir no Google Flights</a>",
+                    "",
+                ])
         message = "\n".join(lines).strip()
         send_telegram(message)
         history["_last_report_signature"] = report_signature
