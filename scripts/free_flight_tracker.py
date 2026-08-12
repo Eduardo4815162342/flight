@@ -26,6 +26,7 @@ RETURN_START = date.fromisoformat(os.getenv("FLIGHT_RETURN_START", "2027-01-16")
 RETURN_END = date.fromisoformat(os.getenv("FLIGHT_RETURN_END", "2027-01-19"))
 MAX_PRICE = float(os.getenv("FLIGHT_MAX_PRICE_BRL", "6000"))
 MAX_STOPS = int(os.getenv("FLIGHT_MAX_STOPS", "2"))
+MAX_DURATION_MINUTES = int(os.getenv("FLIGHT_MAX_DURATION_MINUTES", "1320"))
 SEND_SUMMARY = os.getenv("FLIGHT_SEND_SUMMARY", "false").lower() == "true"
 CITY_NAMES = {
     "MRS": "Marselha", "NCE": "Nice", "LYS": "Lyon", "BCN": "Barcelona",
@@ -33,6 +34,13 @@ CITY_NAMES = {
     "ORY": "Paris",
 }
 HISTORY_FILE = Path(os.getenv("FLIGHT_HISTORY_FILE", "data/free-flight-history.json"))
+# Janeiro: Brasil fica em UTC-3 e os aeroportos europeus monitorados em UTC+1.
+# A conversão é necessária para medir corretamente conexões e duração total.
+UTC_OFFSETS = {
+    "GRU": -3, "VCP": -3,
+    "MRS": 1, "NCE": 1, "LYS": 1, "BCN": 1, "MAD": 1,
+    "LIS": 0, "OPO": 0, "CDG": 1, "ORY": 1,
+}
 
 
 def values(start: date, end: date):
@@ -65,13 +73,17 @@ def duration_minutes(segments: list[Any]) -> int | None:
     dep_time = get_value(departure, "time")
     arr_date = get_value(arrival, "date")
     arr_time = get_value(arrival, "time")
-    if not all((dep_date, dep_time, arr_date, arr_time)):
+    departure_airport = get_value(first, "from_airport")
+    arrival_airport = get_value(last, "to_airport")
+    departure_code = get_value(departure_airport, "code")
+    arrival_code = get_value(arrival_airport, "code")
+    if not all((dep_date, dep_time, arr_date, arr_time, departure_code, arrival_code)):
         return None
     try:
-        start = date(*dep_date).toordinal() * 1440 + dep_time[0] * 60 + dep_time[1]
-        end = date(*arr_date).toordinal() * 1440 + arr_time[0] * 60 + arr_time[1]
+        start = date(*dep_date).toordinal() * 1440 + dep_time[0] * 60 + dep_time[1] - UTC_OFFSETS[departure_code] * 60
+        end = date(*arr_date).toordinal() * 1440 + arr_time[0] * 60 + arr_time[1] - UTC_OFFSETS[arrival_code] * 60
         return max(0, end - start)
-    except (TypeError, IndexError, ValueError):
+    except (KeyError, TypeError, IndexError, ValueError):
         return None
 
 
@@ -111,12 +123,13 @@ def search(origin: str, arrival: str, outbound: str, inbound: str) -> dict[str, 
             stops = int(stops)
         except (TypeError, ValueError):
             stops = 99
-        if stops <= MAX_STOPS:
+        duration = duration_minutes(segments)
+        if stops <= MAX_STOPS and duration is not None and duration <= MAX_DURATION_MINUTES:
             candidates.append({
                 # A moeda é solicitada explicitamente como BRL na query.
                 "price": price,
                 "stops": stops,
-                "duration_minutes": duration_minutes(segments),
+                "duration_minutes": duration,
                 "airline": ", ".join(get_value(flight, "airlines", default=[])) or get_value(flight, "name", "airline", "airline_name", default="desconhecida"),
                 "departure": get_value(flight, "departure", "departure_time", default=""),
                 "arrival_time": get_value(flight, "arrival", "arrival_time", default=""),
@@ -164,7 +177,7 @@ def offer_signature(offer: dict[str, Any]) -> str:
     fields = (
         offer.get("origin"), offer.get("arrival"), offer.get("outbound"),
         offer.get("inbound"), offer.get("airline"), offer.get("price"),
-        offer.get("stops"),
+        offer.get("stops"), offer.get("duration_minutes"),
     )
     return "|".join(str(value) for value in fields)
 
