@@ -27,7 +27,7 @@
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+BCN+on+2027-01-07",
     "last_notified_signature": "GRU|BCN|2027-01-07|2027-01-18|Tap Air Portugal|5346.0|2"
   },
-  "_last_report_signature": "GRU|MAD|2027-01-02|2027-01-19|Avianca|6607.0|1|1000||GRU|MAD|2027-01-06|2027-01-18|Tap Air Portugal|6791.0|1|835||GRU|ORY|2027-01-05|2027-01-19|Tap Air Portugal|6647.0|1|1105||GRU|ORY|2027-01-03|2027-01-19|Tap Air Portugal|8106.0|1|855||GRU|BCN|2027-01-04|2027-01-19|Air Europa|6788.0|1|1295||GRU|BCN|2027-01-06|2027-01-19|Tap Air Portugal|7019.0|1|840||GRU|LIS|2027-01-02|2027-01-19|Air Europa|6794.0|1|765||GRU|LIS|2027-01-04|2027-01-17|LATAM|7722.0|0|580||GRU|OPO|2027-01-02|2027-01-18|Air Europa|6924.0|1|1005||GRU|OPO|2027-01-02|2027-01-19|Iberia|8313.0|1|810||GRU|NCE|2027-01-04|2027-01-18|Tap Air Portugal|7376.0|1|1255||GRU|NCE|2027-01-02|2027-01-16|ITA|8934.0|1|885||GRU|LYS|2027-01-07|2027-01-18|Tap Air Portugal|8017.0|1|860||GRU|LYS|2027-01-07|2027-01-16|Tap Air Portugal|9109.0|1|830||GRU|MRS|2027-01-03|2027-01-17|KLM|8554.0|1|1316||GRU|MRS|2027-01-05|2027-01-17|Air France|8944.0|1|845",
+  "_last_report_signature": "GRU|BCN|2027-01-04|2027-01-18|Tap Air Portugal|6446.0|1|1095||GRU|BCN|2027-01-06|2027-01-19|Tap Air Portugal|7019.0|1|840||GRU|MAD|2027-01-02|2027-01-19|Avianca|6607.0|1|1000||GRU|MAD|2027-01-06|2027-01-18|Tap Air Portugal|6791.0|1|835||GRU|ORY|2027-01-05|2027-01-18|Tap Air Portugal|6671.0|1|1105||GRU|ORY|2027-01-03|2027-01-19|Tap Air Portugal|8106.0|1|855||GRU|LIS|2027-01-06|2027-01-19|Air Europa|6794.0|1|765||GRU|LIS|2027-01-04|2027-01-17|LATAM|7722.0|0|580||GRU|NCE|2027-01-05|2027-01-16|LATAM, Tap Air Portugal|7471.0|2|1195||GRU|NCE|2027-01-02|2027-01-16|ITA|8934.0|1|885||GRU|OPO|2027-01-04|2027-01-19|ITA, Lufthansa|7582.0|2|1085||GRU|OPO|2027-01-02|2027-01-19|Iberia|8313.0|1|810||GRU|LYS|2027-01-07|2027-01-16|Tap Air Portugal|8239.0|1|860||GRU|LYS|2027-01-04|2027-01-16|Tap Air Portugal|8416.0|1|830||GRU|MRS|2027-01-03|2027-01-17|KLM|8554.0|1|1316||GRU|MRS|2027-01-04|2027-01-17|Air France|8944.0|1|890",
   "GRU-CDG-2027-01-06-2027-01-17": {
     "origin": "GRU",
     "arrival": "CDG",
@@ -280,14 +280,14 @@
     "arrival": "ORY",
     "outbound": "2027-01-05",
     "inbound": "2027-01-18",
-    "price": 7401.0,
+    "price": 6671.0,
     "stops": 1,
-    "duration_minutes": 855,
+    "duration_minutes": 1105,
     "airline": "Tap Air Portugal",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+ORY+on+2027-01-05",
-    "last_notified_signature": "GRU|ORY|2027-01-05|2027-01-18|Tap Air Portugal|7401.0|1|855"
+    "last_notified_signature": "GRU|ORY|2027-01-05|2027-01-18|Tap Air Portugal|6671.0|1|1105"
   },
   "GRU-NCE-2027-01-02-2027-01-18": {
     "origin": "GRU",
@@ -322,14 +322,14 @@
     "arrival": "MRS",
     "outbound": "2027-01-04",
     "inbound": "2027-01-17",
-    "price": 9105.0,
+    "price": 8944.0,
     "stops": 1,
     "duration_minutes": 890,
     "airline": "Air France",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+MRS+on+2027-01-04",
-    "last_notified_signature": "GRU|MRS|2027-01-04|2027-01-17|Air France|9105.0|1|890"
+    "last_notified_signature": "GRU|MRS|2027-01-04|2027-01-17|Air France|8944.0|1|890"
   },
   "GRU-LYS-2027-01-03-2027-01-16": {
     "origin": "GRU",
@@ -910,14 +910,14 @@
     "arrival": "LYS",
     "outbound": "2027-01-07",
     "inbound": "2027-01-16",
-    "price": 9109.0,
+    "price": 8239.0,
     "stops": 1,
-    "duration_minutes": 830,
+    "duration_minutes": 860,
     "airline": "Tap Air Portugal",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+LYS+on+2027-01-07",
-    "last_notified_signature": "GRU|LYS|2027-01-07|2027-01-16|Tap Air Portugal|9109.0|1|830"
+    "last_notified_signature": "GRU|LYS|2027-01-07|2027-01-16|Tap Air Portugal|8239.0|1|860"
   },
   "GRU-OPO-2027-01-02-2027-01-18": {
     "origin": "GRU",
@@ -946,5 +946,47 @@
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+OPO+on+2027-01-02",
     "last_notified_signature": "GRU|OPO|2027-01-02|2027-01-19|Iberia|8313.0|1|810"
+  },
+  "GRU-BCN-2027-01-04-2027-01-18": {
+    "origin": "GRU",
+    "arrival": "BCN",
+    "outbound": "2027-01-04",
+    "inbound": "2027-01-18",
+    "price": 6446.0,
+    "stops": 1,
+    "duration_minutes": 1095,
+    "airline": "Tap Air Portugal",
+    "departure": "",
+    "arrival_time": "",
+    "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+BCN+on+2027-01-04",
+    "last_notified_signature": "GRU|BCN|2027-01-04|2027-01-18|Tap Air Portugal|6446.0|1|1095"
+  },
+  "GRU-OPO-2027-01-04-2027-01-19": {
+    "origin": "GRU",
+    "arrival": "OPO",
+    "outbound": "2027-01-04",
+    "inbound": "2027-01-19",
+    "price": 7582.0,
+    "stops": 2,
+    "duration_minutes": 1085,
+    "airline": "ITA, Lufthansa",
+    "departure": "",
+    "arrival_time": "",
+    "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+OPO+on+2027-01-04",
+    "last_notified_signature": "GRU|OPO|2027-01-04|2027-01-19|ITA, Lufthansa|7582.0|2|1085"
+  },
+  "GRU-LYS-2027-01-04-2027-01-16": {
+    "origin": "GRU",
+    "arrival": "LYS",
+    "outbound": "2027-01-04",
+    "inbound": "2027-01-16",
+    "price": 8416.0,
+    "stops": 1,
+    "duration_minutes": 830,
+    "airline": "Tap Air Portugal",
+    "departure": "",
+    "arrival_time": "",
+    "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+LYS+on+2027-01-04",
+    "last_notified_signature": "GRU|LYS|2027-01-04|2027-01-16|Tap Air Portugal|8416.0|1|830"
   }
 }
