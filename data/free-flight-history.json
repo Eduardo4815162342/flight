@@ -27,7 +27,7 @@
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+BCN+on+2027-01-07",
     "last_notified_signature": "GRU|BCN|2027-01-07|2027-01-18|Tap Air Portugal|5346.0|2"
   },
-  "_last_report_signature": "GRU|MAD|2027-01-02|2027-01-19|Avianca|6683.0|1|1000||GRU|MAD|2027-01-06|2027-01-18|Tap Air Portugal|6868.0|1|835||GRU|BCN|2027-01-03|2027-01-18|Tap Air Portugal|7029.0|1|890||GRU|BCN|2027-01-06|2027-01-19|Tap Air Portugal|7099.0|1|840||GRU|LIS|2027-01-02|2027-01-18|LATAM|7486.0|0|585||GRU|LIS|2027-01-02|2027-01-18|LATAM|7486.0|0|585||GRU|ORY|2027-01-06|2027-01-19|Tap Air Portugal|7554.0|1|990||GRU|ORY|2027-01-06|2027-01-19|Tap Air Portugal|7554.0|1|990||GRU|NCE|2027-01-02|2027-01-18|LATAM, Tap Air Portugal|7578.0|2|1080||GRU|NCE|2027-01-04|2027-01-19|ITA|7771.0|1|885||GRU|OPO|2027-01-04|2027-01-19|ITA, Lufthansa|7668.0|2|1085||GRU|OPO|2027-01-05|2027-01-19|Lufthansa|7673.0|1|1055||GRU|LYS|2027-01-07|2027-01-19|Tap Air Portugal|8295.0|1|860||GRU|LYS|2027-01-07|2027-01-19|Tap Air Portugal|8295.0|1|860||GRU|MRS|2027-01-04|2027-01-18|ITA, Lufthansa|8704.0|2|1005||GRU|MRS|2027-01-04|2027-01-17|Air France|9045.0|1|890",
+  "_last_report_signature": "VCP|OPO|2027-01-06|2027-01-16|Azul, Tap Air Portugal|10166.0|2|985||VCP|OPO|2027-01-06|2027-01-16|Azul, Tap Air Portugal|10166.0|2|985",
   "GRU-CDG-2027-01-06-2027-01-17": {
     "origin": "GRU",
     "arrival": "CDG",
@@ -1395,5 +1395,19 @@
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+ORY+on+2027-01-06",
     "last_notified_signature": "GRU|ORY|2027-01-06|2027-01-19|Tap Air Portugal|7554.0|1|990"
+  },
+  "VCP-OPO-2027-01-06-2027-01-16": {
+    "origin": "VCP",
+    "arrival": "OPO",
+    "outbound": "2027-01-06",
+    "inbound": "2027-01-16",
+    "price": 10166.0,
+    "stops": 2,
+    "duration_minutes": 985,
+    "airline": "Azul, Tap Air Portugal",
+    "departure": "",
+    "arrival_time": "",
+    "link": "https://www.google.com/travel/flights?q=flights+from+VCP+to+OPO+on+2027-01-06",
+    "last_notified_signature": "VCP|OPO|2027-01-06|2027-01-16|Azul, Tap Air Portugal|10166.0|2|985"
   }
 }
