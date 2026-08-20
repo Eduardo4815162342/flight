@@ -4,14 +4,14 @@
     "arrival": "NCE",
     "outbound": "2027-01-05",
     "inbound": "2027-01-19",
-    "price": 7693.0,
+    "price": 6773.0,
     "stops": 2,
-    "duration_minutes": 1195,
-    "airline": "LATAM, Tap Air Portugal",
+    "duration_minutes": 1260,
+    "airline": "Tap Air Portugal",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+NCE+on+2027-01-05",
-    "last_notified_signature": "GRU|NCE|2027-01-05|2027-01-19|LATAM, Tap Air Portugal|7693.0|2|1195"
+    "last_notified_signature": "GRU|NCE|2027-01-05|2027-01-19|Tap Air Portugal|6773.0|2|1260"
   },
   "GRU-BCN-2027-01-07-2027-01-18": {
     "origin": "GRU",
@@ -27,7 +27,7 @@
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+BCN+on+2027-01-07",
     "last_notified_signature": "GRU|BCN|2027-01-07|2027-01-18|Tap Air Portugal|5346.0|2"
   },
-  "_last_report_signature": "GRU|MAD|2027-01-07|2027-01-18|Tap Air Portugal|6066.0|2|990||GRU|MAD|2027-01-06|2027-01-19|Royal Air Maroc|6870.0|1|820||GRU|NCE|2027-01-07|2027-01-19|Tap Air Portugal|6551.0|2|1220||GRU|NCE|2027-01-06|2027-01-19|Lufthansa|8878.0|1|905||GRU|BCN|2027-01-02|2027-01-19|Tap Air Portugal|6847.0|2|1290||GRU|BCN|2027-01-06|2027-01-18|Tap Air Portugal|7037.0|1|840||GRU|LIS|2027-01-05|2027-01-16|Royal Air Maroc|7005.0|1|810||GRU|LIS|2027-01-05|2027-01-18|Tap Air Portugal|7431.0|0|595||GRU|ORY|2027-01-05|2027-01-19|Tap Air Portugal|7040.0|1|1105||GRU|ORY|2027-01-03|2027-01-19|Royal Air Maroc|8976.0|1|765||GRU|OPO|2027-01-05|2027-01-19|Tap Air Portugal|7165.0|1|885||GRU|OPO|2027-01-02|2027-01-19|Tap Air Portugal|8314.0|1|765||GRU|LYS|2027-01-07|2027-01-19|Royal Air Maroc|8215.0|1|790||GRU|LYS|2027-01-07|2027-01-19|Royal Air Maroc|8215.0|1|790||VCP|MRS|2027-01-07|2027-01-16|Azul, Tap Air Portugal|8672.0|1|970||GRU|MRS|2027-01-06|2027-01-16|Lufthansa|9266.0|1|925",
+  "_last_report_signature": "GRU|MAD|2027-01-07|2027-01-18|Tap Air Portugal|6066.0|2|990||GRU|MAD|2027-01-06|2027-01-19|Royal Air Maroc|6870.0|1|820||GRU|NCE|2027-01-05|2027-01-19|Tap Air Portugal|6773.0|2|1260||GRU|NCE|2027-01-06|2027-01-19|Lufthansa|8878.0|1|905||GRU|LIS|2027-01-07|2027-01-16|Royal Air Maroc|7005.0|1|810||GRU|LIS|2027-01-04|2027-01-18|Tap Air Portugal|7431.0|0|595||GRU|BCN|2027-01-03|2027-01-18|Tap Air Portugal|7037.0|1|890||GRU|BCN|2027-01-06|2027-01-19|Tap Air Portugal|7270.0|1|840||GRU|ORY|2027-01-05|2027-01-19|Tap Air Portugal|7040.0|1|1105||GRU|ORY|2027-01-03|2027-01-19|Royal Air Maroc|8976.0|1|765||GRU|OPO|2027-01-05|2027-01-19|Tap Air Portugal|7165.0|1|885||GRU|OPO|2027-01-02|2027-01-19|Tap Air Portugal|8314.0|1|765||GRU|LYS|2027-01-07|2027-01-19|Royal Air Maroc|8210.0|1|790||GRU|LYS|2027-01-07|2027-01-19|Royal Air Maroc|8210.0|1|790||VCP|MRS|2027-01-07|2027-01-16|Azul, Tap Air Portugal|8672.0|1|970||GRU|MRS|2027-01-06|2027-01-16|Lufthansa|9266.0|1|925",
   "GRU-CDG-2027-01-06-2027-01-17": {
     "origin": "GRU",
     "arrival": "CDG",
@@ -61,13 +61,14 @@
     "arrival": "LIS",
     "outbound": "2027-01-07",
     "inbound": "2027-01-16",
-    "price": 6335.0,
-    "stops": 0,
-    "airline": "Tap Air Portugal",
+    "price": 7005.0,
+    "stops": 1,
+    "duration_minutes": 810,
+    "airline": "Royal Air Maroc",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+LIS+on+2027-01-07",
-    "last_notified_signature": "GRU|LIS|2027-01-07|2027-01-16|Tap Air Portugal|6335.0|0"
+    "last_notified_signature": "GRU|LIS|2027-01-07|2027-01-16|Royal Air Maroc|7005.0|1|810"
   },
   "GRU-MRS-2027-01-05-2027-01-16": {
     "origin": "GRU",
@@ -519,14 +520,14 @@
     "arrival": "LYS",
     "outbound": "2027-01-07",
     "inbound": "2027-01-19",
-    "price": 8215.0,
+    "price": 8210.0,
     "stops": 1,
     "duration_minutes": 790,
     "airline": "Royal Air Maroc",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+LYS+on+2027-01-07",
-    "last_notified_signature": "GRU|LYS|2027-01-07|2027-01-19|Royal Air Maroc|8215.0|1|790"
+    "last_notified_signature": "GRU|LYS|2027-01-07|2027-01-19|Royal Air Maroc|8210.0|1|790"
   },
   "GRU-BCN-2027-01-04-2027-01-17": {
     "origin": "GRU",
@@ -547,14 +548,14 @@
     "arrival": "BCN",
     "outbound": "2027-01-06",
     "inbound": "2027-01-19",
-    "price": 7046.0,
+    "price": 7270.0,
     "stops": 1,
     "duration_minutes": 840,
     "airline": "Tap Air Portugal",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+BCN+on+2027-01-06",
-    "last_notified_signature": "GRU|BCN|2027-01-06|2027-01-19|Tap Air Portugal|7046.0|1|840"
+    "last_notified_signature": "GRU|BCN|2027-01-06|2027-01-19|Tap Air Portugal|7270.0|1|840"
   },
   "GRU-LIS-2027-01-06-2027-01-19": {
     "origin": "GRU",
@@ -1093,14 +1094,14 @@
     "arrival": "LIS",
     "outbound": "2027-01-04",
     "inbound": "2027-01-18",
-    "price": 7476.0,
+    "price": 7431.0,
     "stops": 0,
     "duration_minutes": 595,
     "airline": "Tap Air Portugal",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+LIS+on+2027-01-04",
-    "last_notified_signature": "GRU|LIS|2027-01-04|2027-01-18|Tap Air Portugal|7476.0|0|595"
+    "last_notified_signature": "GRU|LIS|2027-01-04|2027-01-18|Tap Air Portugal|7431.0|0|595"
   },
   "GRU-LIS-2027-01-02-2027-01-17": {
     "origin": "GRU",
@@ -1261,14 +1262,14 @@
     "arrival": "BCN",
     "outbound": "2027-01-03",
     "inbound": "2027-01-18",
-    "price": 7029.0,
+    "price": 7037.0,
     "stops": 1,
     "duration_minutes": 890,
     "airline": "Tap Air Portugal",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+BCN+on+2027-01-03",
-    "last_notified_signature": "GRU|BCN|2027-01-03|2027-01-18|Tap Air Portugal|7029.0|1|890"
+    "last_notified_signature": "GRU|BCN|2027-01-03|2027-01-18|Tap Air Portugal|7037.0|1|890"
   },
   "GRU-BCN-2027-01-03-2027-01-19": {
     "origin": "GRU",
