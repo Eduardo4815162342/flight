@@ -230,15 +230,26 @@ def main():
     selected_items = [item for selection in selections for item in selection[1:]]
     report_signature = "||".join(offer_signature(item) for item in selected_items)
     previous_report_signature = history.get("_last_report_signature")
-    history["_last_report_signature"] = report_signature
+    # Compara com a última observação da mesma categoria/cidade, e não com
+    # o menor preço histórico de semanas atrás.
+    price_drops = []
+    for city_name, cheapest, best_value in selections:
+        for kind, item in (("cheapest", cheapest), ("value", best_value)):
+            current_key = f"_current-{city_name}-{kind}"
+            previous_price = history.get(current_key, {}).get("price")
+            if previous_price is None or item["price"] < previous_price:
+                price_drops.append(item)
+            history[current_key] = {"price": item["price"], "observed_at": date.today().isoformat()}
+
     for item in selected_items:
         key = f"{item['origin']}-{item['arrival']}-{item['outbound']}-{item['inbound']}"
         history[key] = {**item, "last_notified_signature": offer_signature(item)}
     HISTORY_FILE.parent.mkdir(parents=True, exist_ok=True)
     HISTORY_FILE.write_text(json.dumps(history, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    should_send = report_signature != previous_report_signature and (
-        SEND_SUMMARY or any(item["price"] <= MAX_PRICE for item in selected_items)
+    should_send = (
+        SEND_SUMMARY
+        or (report_signature != previous_report_signature and any(item["price"] <= MAX_PRICE for item in price_drops))
     )
     if should_send:
         lines = ["✈️ <b>Melhores opções por destino</b>", ""]
