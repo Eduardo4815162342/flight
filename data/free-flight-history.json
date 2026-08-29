@@ -1725,14 +1725,14 @@
     "arrival": "LYS",
     "outbound": "2027-01-05",
     "inbound": "2027-01-19",
-    "price": 8183.0,
+    "price": 8182.0,
     "stops": 1,
     "duration_minutes": 790,
     "airline": "Royal Air Maroc",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+LYS+on+2027-01-05",
-    "last_notified_signature": "GRU|LYS|2027-01-05|2027-01-19|Royal Air Maroc|8183.0|1|790"
+    "last_notified_signature": "GRU|LYS|2027-01-05|2027-01-19|Royal Air Maroc|8182.0|1|790"
   },
   "VCP-MRS-2027-01-07-2027-01-17": {
     "origin": "VCP",
@@ -1767,14 +1767,14 @@
     "arrival": "OPO",
     "outbound": "2027-01-03",
     "inbound": "2027-01-17",
-    "price": 8070.0,
+    "price": 8071.0,
     "stops": 1,
     "duration_minutes": 810,
     "airline": "Royal Air Maroc",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+OPO+on+2027-01-03",
-    "last_notified_signature": "GRU|OPO|2027-01-03|2027-01-17|Royal Air Maroc|8070.0|1|810"
+    "last_notified_signature": "GRU|OPO|2027-01-03|2027-01-17|Royal Air Maroc|8071.0|1|810"
   },
   "GRU-MAD-2027-01-07-2027-01-17": {
     "origin": "GRU",
@@ -2058,67 +2058,67 @@
   },
   "_current-Madrid-cheapest": {
     "price": 6610.0,
-    "observed_at": "2026-08-28"
+    "observed_at": "2026-08-29"
   },
   "_current-Madrid-value": {
     "price": 7016.0,
-    "observed_at": "2026-08-28"
+    "observed_at": "2026-08-29"
   },
   "_current-Barcelona-cheapest": {
     "price": 6838.0,
-    "observed_at": "2026-08-28"
+    "observed_at": "2026-08-29"
   },
   "_current-Barcelona-value": {
-    "price": 7644.0,
-    "observed_at": "2026-08-28"
+    "price": 8005.0,
+    "observed_at": "2026-08-29"
   },
   "_current-Nice-cheapest": {
     "price": 7135.0,
-    "observed_at": "2026-08-28"
+    "observed_at": "2026-08-29"
   },
   "_current-Nice-value": {
     "price": 8559.0,
-    "observed_at": "2026-08-28"
+    "observed_at": "2026-08-29"
   },
   "_current-Paris-cheapest": {
     "price": 7574.0,
-    "observed_at": "2026-08-28"
+    "observed_at": "2026-08-29"
   },
   "_current-Paris-value": {
     "price": 7574.0,
-    "observed_at": "2026-08-28"
+    "observed_at": "2026-08-29"
   },
   "_current-Lisboa-cheapest": {
     "price": 7557.0,
-    "observed_at": "2026-08-28"
+    "observed_at": "2026-08-29"
   },
   "_current-Lisboa-value": {
     "price": 8475.0,
-    "observed_at": "2026-08-28"
+    "observed_at": "2026-08-29"
   },
   "_current-Porto-cheapest": {
     "price": 7559.0,
-    "observed_at": "2026-08-28"
+    "observed_at": "2026-08-29"
   },
   "_current-Porto-value": {
-    "price": 8070.0,
-    "observed_at": "2026-08-28"
+    "price": 8071.0,
+    "observed_at": "2026-08-29"
   },
   "_current-Lyon-cheapest": {
-    "price": 8363.0,
-    "observed_at": "2026-08-28"
+    "price": 8182.0,
+    "observed_at": "2026-08-29"
   },
   "_current-Lyon-value": {
-    "price": 9705.0,
-    "observed_at": "2026-08-28"
+    "price": 8182.0,
+    "observed_at": "2026-08-29"
   },
   "_current-Marselha-cheapest": {
     "price": 8103.0,
-    "observed_at": "2026-08-28"
+    "observed_at": "2026-08-29"
   },
   "_current-Marselha-value": {
     "price": 8396.0,
-    "observed_at": "2026-08-28"
+    "observed_at": "2026-08-29"
   },
   "GRU-ORY-2027-01-06-2027-01-18": {
     "origin": "GRU",
@@ -2251,14 +2251,14 @@
     "arrival": "BCN",
     "outbound": "2027-01-07",
     "inbound": "2027-01-16",
-    "price": 8328.0,
+    "price": 8005.0,
     "stops": 1,
-    "duration_minutes": 830,
-    "airline": "Air Europa",
+    "duration_minutes": 825,
+    "airline": "Royal Air Maroc",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+BCN+on+2027-01-07",
-    "last_notified_signature": "GRU|BCN|2027-01-07|2027-01-16|Air Europa|8328.0|1|830"
+    "last_notified_signature": "GRU|BCN|2027-01-07|2027-01-16|Royal Air Maroc|8005.0|1|825"
   },
   "GRU-LIS-2027-01-02-2027-01-16": {
     "origin": "GRU",
