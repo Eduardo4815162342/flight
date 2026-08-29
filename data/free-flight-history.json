@@ -353,14 +353,14 @@
     "arrival": "LIS",
     "outbound": "2027-01-06",
     "inbound": "2027-01-17",
-    "price": 7463.0,
+    "price": 7778.0,
     "stops": 0,
     "duration_minutes": 580,
     "airline": "LATAM",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+LIS+on+2027-01-06",
-    "last_notified_signature": "GRU|LIS|2027-01-06|2027-01-17|LATAM|7463.0|0|580"
+    "last_notified_signature": "GRU|LIS|2027-01-06|2027-01-17|LATAM|7778.0|0|580"
   },
   "GRU-BCN-2027-01-06-2027-01-17": {
     "origin": "GRU",
@@ -409,14 +409,14 @@
     "arrival": "LYS",
     "outbound": "2027-01-07",
     "inbound": "2027-01-19",
-    "price": 8535.0,
-    "stops": 2,
-    "duration_minutes": 1170,
+    "price": 8657.0,
+    "stops": 1,
+    "duration_minutes": 1135,
     "airline": "Azul, Tap Air Portugal",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+VCP+to+LYS+on+2027-01-07",
-    "last_notified_signature": "VCP|LYS|2027-01-07|2027-01-19|Azul, Tap Air Portugal|8535.0|2|1170"
+    "last_notified_signature": "VCP|LYS|2027-01-07|2027-01-19|Azul, Tap Air Portugal|8657.0|1|1135"
   },
   "GRU-BCN-2027-01-07-2027-01-19": {
     "origin": "GRU",
@@ -619,14 +619,14 @@
     "arrival": "ORY",
     "outbound": "2027-01-05",
     "inbound": "2027-01-19",
-    "price": 7645.0,
+    "price": 7692.0,
     "stops": 2,
     "duration_minutes": 1110,
     "airline": "Tap Air Portugal",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+ORY+on+2027-01-05",
-    "last_notified_signature": "GRU|ORY|2027-01-05|2027-01-19|Tap Air Portugal|7645.0|2|1110"
+    "last_notified_signature": "GRU|ORY|2027-01-05|2027-01-19|Tap Air Portugal|7692.0|2|1110"
   },
   "GRU-NCE-2027-01-02-2027-01-16": {
     "origin": "GRU",
@@ -2089,7 +2089,7 @@
     "observed_at": "2026-08-29"
   },
   "_current-Lisboa-cheapest": {
-    "price": 7607.0,
+    "price": 7647.0,
     "observed_at": "2026-08-29"
   },
   "_current-Lisboa-value": {
@@ -2105,7 +2105,7 @@
     "observed_at": "2026-08-29"
   },
   "_current-Lyon-cheapest": {
-    "price": 8415.0,
+    "price": 8657.0,
     "observed_at": "2026-08-29"
   },
   "_current-Lyon-value": {
