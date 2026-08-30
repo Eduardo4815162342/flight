@@ -1151,14 +1151,14 @@
     "arrival": "MAD",
     "outbound": "2027-01-03",
     "inbound": "2027-01-19",
-    "price": 6610.0,
+    "price": 6655.0,
     "stops": 1,
     "duration_minutes": 1140,
     "airline": "Avianca",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+MAD+on+2027-01-03",
-    "last_notified_signature": "GRU|MAD|2027-01-03|2027-01-19|Avianca|6610.0|1|1140"
+    "last_notified_signature": "GRU|MAD|2027-01-03|2027-01-19|Avianca|6655.0|1|1140"
   },
   "GRU-LIS-2027-01-06-2027-01-18": {
     "origin": "GRU",
@@ -1879,14 +1879,14 @@
     "arrival": "CDG",
     "outbound": "2027-01-03",
     "inbound": "2027-01-19",
-    "price": 8793.0,
+    "price": 8934.0,
     "stops": 1,
     "duration_minutes": 871,
     "airline": "KLM, Air France",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+CDG+on+2027-01-03",
-    "last_notified_signature": "GRU|CDG|2027-01-03|2027-01-19|KLM, Air France|8793.0|1|871"
+    "last_notified_signature": "GRU|CDG|2027-01-03|2027-01-19|KLM, Air France|8934.0|1|871"
   },
   "GRU-MRS-2027-01-02-2027-01-16": {
     "origin": "GRU",
@@ -2085,7 +2085,7 @@
     "observed_at": "2026-08-30"
   },
   "_current-Paris-value": {
-    "price": 9303.0,
+    "price": 8934.0,
     "observed_at": "2026-08-30"
   },
   "_current-Lisboa-cheapest": {
