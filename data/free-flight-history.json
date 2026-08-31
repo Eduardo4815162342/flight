@@ -367,14 +367,14 @@
     "arrival": "BCN",
     "outbound": "2027-01-06",
     "inbound": "2027-01-17",
-    "price": 7283.0,
+    "price": 7371.0,
     "stops": 1,
-    "duration_minutes": 840,
-    "airline": "Tap Air Portugal",
+    "duration_minutes": 825,
+    "airline": "Royal Air Maroc",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+BCN+on+2027-01-06",
-    "last_notified_signature": "GRU|BCN|2027-01-06|2027-01-17|Tap Air Portugal|7283.0|1|840"
+    "last_notified_signature": "GRU|BCN|2027-01-06|2027-01-17|Royal Air Maroc|7371.0|1|825"
   },
   "GRU-ORY-2027-01-02-2027-01-16": {
     "origin": "GRU",
@@ -423,14 +423,14 @@
     "arrival": "BCN",
     "outbound": "2027-01-07",
     "inbound": "2027-01-19",
-    "price": 7345.0,
-    "stops": 1,
-    "duration_minutes": 825,
-    "airline": "Royal Air Maroc",
+    "price": 6881.0,
+    "stops": 2,
+    "duration_minutes": 990,
+    "airline": "Tap Air Portugal",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+BCN+on+2027-01-07",
-    "last_notified_signature": "GRU|BCN|2027-01-07|2027-01-19|Royal Air Maroc|7345.0|1|825"
+    "last_notified_signature": "GRU|BCN|2027-01-07|2027-01-19|Tap Air Portugal|6881.0|2|990"
   },
   "GRU-BCN-2027-01-06-2027-01-16": {
     "origin": "GRU",
@@ -787,14 +787,14 @@
     "arrival": "ORY",
     "outbound": "2027-01-04",
     "inbound": "2027-01-19",
-    "price": 7692.0,
-    "stops": 2,
-    "duration_minutes": 1180,
+    "price": 7701.0,
+    "stops": 1,
+    "duration_minutes": 1230,
     "airline": "Tap Air Portugal",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+ORY+on+2027-01-04",
-    "last_notified_signature": "GRU|ORY|2027-01-04|2027-01-19|Tap Air Portugal|7692.0|2|1180"
+    "last_notified_signature": "GRU|ORY|2027-01-04|2027-01-19|Tap Air Portugal|7701.0|1|1230"
   },
   "GRU-NCE-2027-01-02-2027-01-19": {
     "origin": "GRU",
@@ -1795,14 +1795,14 @@
     "arrival": "MAD",
     "outbound": "2027-01-06",
     "inbound": "2027-01-17",
-    "price": 7039.0,
+    "price": 7042.0,
     "stops": 1,
     "duration_minutes": 820,
     "airline": "Royal Air Maroc",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+MAD+on+2027-01-06",
-    "last_notified_signature": "GRU|MAD|2027-01-06|2027-01-17|Royal Air Maroc|7039.0|1|820"
+    "last_notified_signature": "GRU|MAD|2027-01-06|2027-01-17|Royal Air Maroc|7042.0|1|820"
   },
   "GRU-BCN-2027-01-05-2027-01-17": {
     "origin": "GRU",
@@ -1921,14 +1921,14 @@
     "arrival": "OPO",
     "outbound": "2027-01-03",
     "inbound": "2027-01-19",
-    "price": 7610.0,
+    "price": 7057.0,
     "stops": 1,
-    "duration_minutes": 1230,
-    "airline": "Iberia",
+    "duration_minutes": 1185,
+    "airline": "Tap Air Portugal",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+OPO+on+2027-01-03",
-    "last_notified_signature": "GRU|OPO|2027-01-03|2027-01-19|Iberia|7610.0|1|1230"
+    "last_notified_signature": "GRU|OPO|2027-01-03|2027-01-19|Tap Air Portugal|7057.0|1|1185"
   },
   "GRU-LYS-2027-01-04-2027-01-19": {
     "origin": "GRU",
@@ -2061,15 +2061,15 @@
     "observed_at": "2026-08-31"
   },
   "_current-Madrid-value": {
-    "price": 7039.0,
+    "price": 7042.0,
     "observed_at": "2026-08-31"
   },
   "_current-Barcelona-cheapest": {
-    "price": 7203.0,
+    "price": 6881.0,
     "observed_at": "2026-08-31"
   },
   "_current-Barcelona-value": {
-    "price": 7345.0,
+    "price": 7371.0,
     "observed_at": "2026-08-31"
   },
   "_current-Nice-cheapest": {
@@ -2081,7 +2081,7 @@
     "observed_at": "2026-08-31"
   },
   "_current-Paris-cheapest": {
-    "price": 7692.0,
+    "price": 7701.0,
     "observed_at": "2026-08-31"
   },
   "_current-Paris-value": {
@@ -2093,15 +2093,15 @@
     "observed_at": "2026-08-31"
   },
   "_current-Lisboa-value": {
-    "price": 7414.0,
+    "price": 6853.0,
     "observed_at": "2026-08-31"
   },
   "_current-Porto-cheapest": {
-    "price": 7324.0,
+    "price": 7057.0,
     "observed_at": "2026-08-31"
   },
   "_current-Porto-value": {
-    "price": 8317.0,
+    "price": 9108.0,
     "observed_at": "2026-08-31"
   },
   "_current-Lyon-cheapest": {
@@ -2497,5 +2497,19 @@
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+OPO+on+2027-01-03",
     "last_notified_signature": "GRU|OPO|2027-01-03|2027-01-16|Tap Air Portugal|9049.0|1|750"
+  },
+  "VCP-OPO-2027-01-07-2027-01-18": {
+    "origin": "VCP",
+    "arrival": "OPO",
+    "outbound": "2027-01-07",
+    "inbound": "2027-01-18",
+    "price": 9108.0,
+    "stops": 1,
+    "duration_minutes": 805,
+    "airline": "Azul, Tap Air Portugal",
+    "departure": "",
+    "arrival_time": "",
+    "link": "https://www.google.com/travel/flights?q=flights+from+VCP+to+OPO+on+2027-01-07",
+    "last_notified_signature": "VCP|OPO|2027-01-07|2027-01-18|Azul, Tap Air Portugal|9108.0|1|805"
   }
 }
