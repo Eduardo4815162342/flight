@@ -395,14 +395,14 @@
     "arrival": "ORY",
     "outbound": "2027-01-05",
     "inbound": "2027-01-16",
-    "price": 7492.0,
-    "stops": 2,
-    "duration_minutes": 1110,
+    "price": 9234.0,
+    "stops": 1,
+    "duration_minutes": 855,
     "airline": "Tap Air Portugal",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+ORY+on+2027-01-05",
-    "last_notified_signature": "GRU|ORY|2027-01-05|2027-01-16|Tap Air Portugal|7492.0|2|1110"
+    "last_notified_signature": "GRU|ORY|2027-01-05|2027-01-16|Tap Air Portugal|9234.0|1|855"
   },
   "VCP-LYS-2027-01-07-2027-01-19": {
     "origin": "VCP",
@@ -1011,14 +1011,14 @@
     "arrival": "NCE",
     "outbound": "2027-01-07",
     "inbound": "2027-01-19",
-    "price": 7063.0,
+    "price": 7178.0,
     "stops": 2,
     "duration_minutes": 1220,
     "airline": "Tap Air Portugal",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+NCE+on+2027-01-07",
-    "last_notified_signature": "GRU|NCE|2027-01-07|2027-01-19|Tap Air Portugal|7063.0|2|1220"
+    "last_notified_signature": "GRU|NCE|2027-01-07|2027-01-19|Tap Air Portugal|7178.0|2|1220"
   },
   "GRU-OPO-2027-01-04-2027-01-17": {
     "origin": "GRU",
@@ -1193,14 +1193,14 @@
     "arrival": "NCE",
     "outbound": "2027-01-06",
     "inbound": "2027-01-19",
-    "price": 7620.0,
+    "price": 7680.0,
     "stops": 1,
-    "duration_minutes": 800,
-    "airline": "Royal Air Maroc",
+    "duration_minutes": 885,
+    "airline": "ITA",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+NCE+on+2027-01-06",
-    "last_notified_signature": "GRU|NCE|2027-01-06|2027-01-19|Royal Air Maroc|7620.0|1|800"
+    "last_notified_signature": "GRU|NCE|2027-01-06|2027-01-19|ITA|7680.0|1|885"
   },
   "GRU-OPO-2027-01-06-2027-01-19": {
     "origin": "GRU",
@@ -1795,14 +1795,14 @@
     "arrival": "MAD",
     "outbound": "2027-01-06",
     "inbound": "2027-01-17",
-    "price": 7043.0,
+    "price": 7044.0,
     "stops": 1,
     "duration_minutes": 820,
     "airline": "Royal Air Maroc",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+MAD+on+2027-01-06",
-    "last_notified_signature": "GRU|MAD|2027-01-06|2027-01-17|Royal Air Maroc|7043.0|1|820"
+    "last_notified_signature": "GRU|MAD|2027-01-06|2027-01-17|Royal Air Maroc|7044.0|1|820"
   },
   "GRU-BCN-2027-01-05-2027-01-17": {
     "origin": "GRU",
@@ -2058,67 +2058,67 @@
   },
   "_current-Madrid-cheapest": {
     "price": 6655.0,
-    "observed_at": "2026-08-31"
+    "observed_at": "2026-09-01"
   },
   "_current-Madrid-value": {
-    "price": 7043.0,
-    "observed_at": "2026-08-31"
+    "price": 7044.0,
+    "observed_at": "2026-09-01"
   },
   "_current-Barcelona-cheapest": {
     "price": 6881.0,
-    "observed_at": "2026-08-31"
+    "observed_at": "2026-09-01"
   },
   "_current-Barcelona-value": {
     "price": 8188.0,
-    "observed_at": "2026-08-31"
+    "observed_at": "2026-09-01"
   },
   "_current-Nice-cheapest": {
-    "price": 7063.0,
-    "observed_at": "2026-08-31"
+    "price": 7178.0,
+    "observed_at": "2026-09-01"
   },
   "_current-Nice-value": {
-    "price": 7881.0,
-    "observed_at": "2026-08-31"
+    "price": 7680.0,
+    "observed_at": "2026-09-01"
   },
   "_current-Paris-cheapest": {
     "price": 7701.0,
-    "observed_at": "2026-08-31"
+    "observed_at": "2026-09-01"
   },
   "_current-Paris-value": {
-    "price": 8934.0,
-    "observed_at": "2026-08-31"
+    "price": 9234.0,
+    "observed_at": "2026-09-01"
   },
   "_current-Lisboa-cheapest": {
     "price": 6853.0,
-    "observed_at": "2026-08-31"
+    "observed_at": "2026-09-01"
   },
   "_current-Lisboa-value": {
     "price": 6853.0,
-    "observed_at": "2026-08-31"
+    "observed_at": "2026-09-01"
   },
   "_current-Porto-cheapest": {
     "price": 7324.0,
-    "observed_at": "2026-08-31"
+    "observed_at": "2026-09-01"
   },
   "_current-Porto-value": {
-    "price": 9469.0,
-    "observed_at": "2026-08-31"
+    "price": 9108.0,
+    "observed_at": "2026-09-01"
   },
   "_current-Lyon-cheapest": {
     "price": 8806.0,
-    "observed_at": "2026-08-31"
+    "observed_at": "2026-09-01"
   },
   "_current-Lyon-value": {
     "price": 9575.0,
-    "observed_at": "2026-08-31"
+    "observed_at": "2026-09-01"
   },
   "_current-Marselha-cheapest": {
     "price": 9101.0,
-    "observed_at": "2026-08-31"
+    "observed_at": "2026-09-01"
   },
   "_current-Marselha-value": {
     "price": 9491.0,
-    "observed_at": "2026-08-31"
+    "observed_at": "2026-09-01"
   },
   "GRU-ORY-2027-01-06-2027-01-18": {
     "origin": "GRU",
