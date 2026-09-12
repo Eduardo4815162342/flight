@@ -1307,14 +1307,14 @@
     "arrival": "CDG",
     "outbound": "2027-01-03",
     "inbound": "2027-01-18",
-    "price": 8568.0,
+    "price": 8785.0,
     "stops": 1,
-    "duration_minutes": 910,
-    "airline": "Lufthansa",
+    "duration_minutes": 871,
+    "airline": "KLM, Air France",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+CDG+on+2027-01-03",
-    "last_notified_signature": "GRU|CDG|2027-01-03|2027-01-18|Lufthansa|8568.0|1|910"
+    "last_notified_signature": "GRU|CDG|2027-01-03|2027-01-18|KLM, Air France|8785.0|1|871"
   },
   "GRU-OPO-2027-01-04-2027-01-16": {
     "origin": "GRU",
@@ -2087,7 +2087,7 @@
     "observed_at": "2026-09-12"
   },
   "_current-Paris-value": {
-    "price": 8674.0,
+    "price": 8785.0,
     "observed_at": "2026-09-12"
   },
   "_current-Lisboa-cheapest": {
