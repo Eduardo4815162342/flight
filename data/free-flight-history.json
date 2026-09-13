@@ -509,14 +509,14 @@
     "arrival": "OPO",
     "outbound": "2027-01-07",
     "inbound": "2027-01-19",
-    "price": 7606.0,
-    "stops": 2,
-    "duration_minutes": 1260,
-    "airline": "Lufthansa",
+    "price": 7557.0,
+    "stops": 1,
+    "duration_minutes": 1270,
+    "airline": "Air Europa",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+OPO+on+2027-01-07",
-    "last_notified_signature": "GRU|OPO|2027-01-07|2027-01-19|Lufthansa|7606.0|2|1260"
+    "last_notified_signature": "GRU|OPO|2027-01-07|2027-01-19|Air Europa|7557.0|1|1270"
   },
   "GRU-LYS-2027-01-07-2027-01-19": {
     "origin": "GRU",
@@ -831,14 +831,14 @@
     "arrival": "MRS",
     "outbound": "2027-01-05",
     "inbound": "2027-01-17",
-    "price": 8699.0,
+    "price": 8768.0,
     "stops": 1,
-    "duration_minutes": 890,
-    "airline": "Air France",
+    "duration_minutes": 795,
+    "airline": "Royal Air Maroc",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+MRS+on+2027-01-05",
-    "last_notified_signature": "GRU|MRS|2027-01-05|2027-01-17|Air France|8699.0|1|890"
+    "last_notified_signature": "GRU|MRS|2027-01-05|2027-01-17|Royal Air Maroc|8768.0|1|795"
   },
   "GRU-ORY-2027-01-03-2027-01-19": {
     "origin": "GRU",
@@ -2083,27 +2083,27 @@
     "observed_at": "2026-09-13"
   },
   "_current-Paris-cheapest": {
-    "price": 8213.0,
+    "price": 8377.0,
     "observed_at": "2026-09-13"
   },
   "_current-Paris-value": {
-    "price": 8974.0,
+    "price": 8995.0,
     "observed_at": "2026-09-13"
   },
   "_current-Lisboa-cheapest": {
-    "price": 7603.0,
+    "price": 7633.0,
     "observed_at": "2026-09-13"
   },
   "_current-Lisboa-value": {
-    "price": 7746.0,
+    "price": 7935.0,
     "observed_at": "2026-09-13"
   },
   "_current-Porto-cheapest": {
-    "price": 7736.0,
+    "price": 7557.0,
     "observed_at": "2026-09-13"
   },
   "_current-Porto-value": {
-    "price": 9227.0,
+    "price": 9855.0,
     "observed_at": "2026-09-13"
   },
   "_current-Lyon-cheapest": {
@@ -2119,7 +2119,7 @@
     "observed_at": "2026-09-13"
   },
   "_current-Marselha-value": {
-    "price": 8872.0,
+    "price": 8768.0,
     "observed_at": "2026-09-13"
   },
   "GRU-ORY-2027-01-06-2027-01-18": {
@@ -2267,14 +2267,14 @@
     "arrival": "LIS",
     "outbound": "2027-01-02",
     "inbound": "2027-01-16",
-    "price": 9145.0,
+    "price": 7935.0,
     "stops": 0,
     "duration_minutes": 585,
     "airline": "LATAM",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+LIS+on+2027-01-02",
-    "last_notified_signature": "GRU|LIS|2027-01-02|2027-01-16|LATAM|9145.0|0|585"
+    "last_notified_signature": "GRU|LIS|2027-01-02|2027-01-16|LATAM|7935.0|0|585"
   },
   "GRU-MRS-2027-01-04-2027-01-16": {
     "origin": "GRU",
@@ -2911,14 +2911,14 @@
     "arrival": "CDG",
     "outbound": "2027-01-04",
     "inbound": "2027-01-19",
-    "price": 8964.0,
+    "price": 8995.0,
     "stops": 1,
     "duration_minutes": 871,
     "airline": "KLM, Air France",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+CDG+on+2027-01-04",
-    "last_notified_signature": "GRU|CDG|2027-01-04|2027-01-19|KLM, Air France|8964.0|1|871"
+    "last_notified_signature": "GRU|CDG|2027-01-04|2027-01-19|KLM, Air France|8995.0|1|871"
   },
   "GRU-CDG-2027-01-04-2027-01-18": {
     "origin": "GRU",
@@ -2933,5 +2933,19 @@
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+CDG+on+2027-01-04",
     "last_notified_signature": "GRU|CDG|2027-01-04|2027-01-18|KLM, Air France|8974.0|1|871"
+  },
+  "VCP-OPO-2027-01-03-2027-01-17": {
+    "origin": "VCP",
+    "arrival": "OPO",
+    "outbound": "2027-01-03",
+    "inbound": "2027-01-17",
+    "price": 9855.0,
+    "stops": 0,
+    "duration_minutes": 605,
+    "airline": "Azul",
+    "departure": "",
+    "arrival_time": "",
+    "link": "https://www.google.com/travel/flights?q=flights+from+VCP+to+OPO+on+2027-01-03",
+    "last_notified_signature": "VCP|OPO|2027-01-03|2027-01-17|Azul|9855.0|0|605"
   }
 }
