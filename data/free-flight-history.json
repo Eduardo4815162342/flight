@@ -817,14 +817,14 @@
     "arrival": "BCN",
     "outbound": "2027-01-05",
     "inbound": "2027-01-19",
-    "price": 7441.0,
+    "price": 8079.0,
     "stops": 1,
-    "duration_minutes": 1160,
-    "airline": "LATAM, Iberia",
+    "duration_minutes": 915,
+    "airline": "ITA",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+BCN+on+2027-01-05",
-    "last_notified_signature": "GRU|BCN|2027-01-05|2027-01-19|LATAM, Iberia|7441.0|1|1160"
+    "last_notified_signature": "GRU|BCN|2027-01-05|2027-01-19|ITA|8079.0|1|915"
   },
   "GRU-MRS-2027-01-05-2027-01-17": {
     "origin": "GRU",
@@ -1671,14 +1671,14 @@
     "arrival": "OPO",
     "outbound": "2027-01-03",
     "inbound": "2027-01-18",
-    "price": 8090.0,
+    "price": 8097.0,
     "stops": 1,
     "duration_minutes": 1230,
     "airline": "Iberia",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+OPO+on+2027-01-03",
-    "last_notified_signature": "GRU|OPO|2027-01-03|2027-01-18|Iberia|8090.0|1|1230"
+    "last_notified_signature": "GRU|OPO|2027-01-03|2027-01-18|Iberia|8097.0|1|1230"
   },
   "VCP-MRS-2027-01-07-2027-01-16": {
     "origin": "VCP",
@@ -1783,14 +1783,14 @@
     "arrival": "MAD",
     "outbound": "2027-01-07",
     "inbound": "2027-01-17",
-    "price": 6904.0,
+    "price": 6916.0,
     "stops": 1,
     "duration_minutes": 820,
     "airline": "Royal Air Maroc",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+MAD+on+2027-01-07",
-    "last_notified_signature": "GRU|MAD|2027-01-07|2027-01-17|Royal Air Maroc|6904.0|1|820"
+    "last_notified_signature": "GRU|MAD|2027-01-07|2027-01-17|Royal Air Maroc|6916.0|1|820"
   },
   "GRU-MAD-2027-01-06-2027-01-17": {
     "origin": "GRU",
@@ -2060,67 +2060,67 @@
   },
   "_current-Madrid-cheapest": {
     "price": 6300.0,
-    "observed_at": "2026-09-19"
+    "observed_at": "2026-09-20"
   },
   "_current-Madrid-value": {
-    "price": 7467.0,
-    "observed_at": "2026-09-19"
+    "price": 6916.0,
+    "observed_at": "2026-09-20"
   },
   "_current-Barcelona-cheapest": {
-    "price": 8227.0,
-    "observed_at": "2026-09-19"
+    "price": 8079.0,
+    "observed_at": "2026-09-20"
   },
   "_current-Barcelona-value": {
     "price": 8591.0,
-    "observed_at": "2026-09-19"
+    "observed_at": "2026-09-20"
   },
   "_current-Nice-cheapest": {
-    "price": 8525.0,
-    "observed_at": "2026-09-19"
+    "price": 8761.0,
+    "observed_at": "2026-09-20"
   },
   "_current-Nice-value": {
     "price": 8761.0,
-    "observed_at": "2026-09-19"
+    "observed_at": "2026-09-20"
   },
   "_current-Paris-cheapest": {
     "price": 8441.0,
-    "observed_at": "2026-09-19"
+    "observed_at": "2026-09-20"
   },
   "_current-Paris-value": {
-    "price": 9239.0,
-    "observed_at": "2026-09-19"
+    "price": 9265.0,
+    "observed_at": "2026-09-20"
   },
   "_current-Lisboa-cheapest": {
-    "price": 7459.0,
-    "observed_at": "2026-09-19"
+    "price": 7665.0,
+    "observed_at": "2026-09-20"
   },
   "_current-Lisboa-value": {
     "price": 8821.0,
-    "observed_at": "2026-09-19"
+    "observed_at": "2026-09-20"
   },
   "_current-Porto-cheapest": {
-    "price": 8061.0,
-    "observed_at": "2026-09-19"
+    "price": 8097.0,
+    "observed_at": "2026-09-20"
   },
   "_current-Porto-value": {
     "price": 10776.0,
-    "observed_at": "2026-09-19"
+    "observed_at": "2026-09-20"
   },
   "_current-Lyon-cheapest": {
     "price": 8592.0,
-    "observed_at": "2026-09-19"
+    "observed_at": "2026-09-20"
   },
   "_current-Lyon-value": {
     "price": 8592.0,
-    "observed_at": "2026-09-19"
+    "observed_at": "2026-09-20"
   },
   "_current-Marselha-cheapest": {
-    "price": 8687.0,
-    "observed_at": "2026-09-19"
+    "price": 8361.0,
+    "observed_at": "2026-09-20"
   },
   "_current-Marselha-value": {
     "price": 9349.0,
-    "observed_at": "2026-09-19"
+    "observed_at": "2026-09-20"
   },
   "GRU-ORY-2027-01-06-2027-01-18": {
     "origin": "GRU",
@@ -2939,14 +2939,14 @@
     "arrival": "OPO",
     "outbound": "2027-01-03",
     "inbound": "2027-01-17",
-    "price": 10426.0,
+    "price": 10776.0,
     "stops": 0,
     "duration_minutes": 605,
     "airline": "Azul",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+VCP+to+OPO+on+2027-01-03",
-    "last_notified_signature": "VCP|OPO|2027-01-03|2027-01-17|Azul|10426.0|0|605"
+    "last_notified_signature": "VCP|OPO|2027-01-03|2027-01-17|Azul|10776.0|0|605"
   },
   "VCP-OPO-2027-01-03-2027-01-16": {
     "origin": "VCP",
@@ -3107,14 +3107,14 @@
     "arrival": "CDG",
     "outbound": "2027-01-07",
     "inbound": "2027-01-18",
-    "price": 9239.0,
+    "price": 9265.0,
     "stops": 1,
     "duration_minutes": 855,
     "airline": "KLM",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+CDG+on+2027-01-07",
-    "last_notified_signature": "GRU|CDG|2027-01-07|2027-01-18|KLM|9239.0|1|855"
+    "last_notified_signature": "GRU|CDG|2027-01-07|2027-01-18|KLM|9265.0|1|855"
   },
   "VCP-MAD-2027-01-06-2027-01-19": {
     "origin": "VCP",
