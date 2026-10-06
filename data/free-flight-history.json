@@ -1013,14 +1013,14 @@
     "arrival": "NCE",
     "outbound": "2027-01-07",
     "inbound": "2027-01-19",
-    "price": 9167.0,
+    "price": 8824.0,
     "stops": 1,
-    "duration_minutes": 850,
-    "airline": "Air France",
+    "duration_minutes": 885,
+    "airline": "ITA",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+NCE+on+2027-01-07",
-    "last_notified_signature": "GRU|NCE|2027-01-07|2027-01-19|Air France|9167.0|1|850"
+    "last_notified_signature": "GRU|NCE|2027-01-07|2027-01-19|ITA|8824.0|1|885"
   },
   "GRU-OPO-2027-01-04-2027-01-17": {
     "origin": "GRU",
@@ -2060,67 +2060,67 @@
   },
   "_current-Madrid-cheapest": {
     "price": 6774.0,
-    "observed_at": "2026-10-05"
+    "observed_at": "2026-10-06"
   },
   "_current-Madrid-value": {
     "price": 9370.0,
-    "observed_at": "2026-10-05"
+    "observed_at": "2026-10-06"
   },
   "_current-Barcelona-cheapest": {
     "price": 7760.0,
-    "observed_at": "2026-10-05"
+    "observed_at": "2026-10-06"
   },
   "_current-Barcelona-value": {
     "price": 9552.0,
-    "observed_at": "2026-10-05"
+    "observed_at": "2026-10-06"
   },
   "_current-Nice-cheapest": {
     "price": 8784.0,
-    "observed_at": "2026-10-05"
+    "observed_at": "2026-10-06"
   },
   "_current-Nice-value": {
-    "price": 8821.0,
-    "observed_at": "2026-10-05"
+    "price": 8824.0,
+    "observed_at": "2026-10-06"
   },
   "_current-Paris-cheapest": {
     "price": 8710.0,
-    "observed_at": "2026-10-05"
+    "observed_at": "2026-10-06"
   },
   "_current-Paris-value": {
     "price": 8915.0,
-    "observed_at": "2026-10-05"
+    "observed_at": "2026-10-06"
   },
   "_current-Lisboa-cheapest": {
     "price": 7847.0,
-    "observed_at": "2026-10-05"
+    "observed_at": "2026-10-06"
   },
   "_current-Lisboa-value": {
     "price": 9170.0,
-    "observed_at": "2026-10-05"
+    "observed_at": "2026-10-06"
   },
   "_current-Porto-cheapest": {
     "price": 8593.0,
-    "observed_at": "2026-10-05"
+    "observed_at": "2026-10-06"
   },
   "_current-Porto-value": {
     "price": 10973.0,
-    "observed_at": "2026-10-05"
+    "observed_at": "2026-10-06"
   },
   "_current-Lyon-cheapest": {
     "price": 8611.0,
-    "observed_at": "2026-10-05"
+    "observed_at": "2026-10-06"
   },
   "_current-Lyon-value": {
     "price": 12354.0,
-    "observed_at": "2026-10-05"
+    "observed_at": "2026-10-06"
   },
   "_current-Marselha-cheapest": {
     "price": 9525.0,
-    "observed_at": "2026-10-05"
+    "observed_at": "2026-10-06"
   },
   "_current-Marselha-value": {
     "price": 10023.0,
-    "observed_at": "2026-10-05"
+    "observed_at": "2026-10-06"
   },
   "GRU-ORY-2027-01-06-2027-01-18": {
     "origin": "GRU",
