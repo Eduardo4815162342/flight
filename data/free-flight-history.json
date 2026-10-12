@@ -565,14 +565,14 @@
     "arrival": "LIS",
     "outbound": "2027-01-06",
     "inbound": "2027-01-19",
-    "price": 7473.0,
+    "price": 7243.0,
     "stops": 1,
-    "duration_minutes": 1080,
-    "airline": "Gol, Tap Air Portugal",
+    "duration_minutes": 1125,
+    "airline": "LATAM, Tap Air Portugal",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+LIS+on+2027-01-06",
-    "last_notified_signature": "GRU|LIS|2027-01-06|2027-01-19|Gol, Tap Air Portugal|7473.0|1|1080"
+    "last_notified_signature": "GRU|LIS|2027-01-06|2027-01-19|LATAM, Tap Air Portugal|7243.0|1|1125"
   },
   "GRU-NCE-2027-01-03-2027-01-18": {
     "origin": "GRU",
@@ -761,14 +761,14 @@
     "arrival": "MRS",
     "outbound": "2027-01-03",
     "inbound": "2027-01-17",
-    "price": 9587.0,
+    "price": 9625.0,
     "stops": 1,
     "duration_minutes": 890,
     "airline": "Air France",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+MRS+on+2027-01-03",
-    "last_notified_signature": "GRU|MRS|2027-01-03|2027-01-17|Air France|9587.0|1|890"
+    "last_notified_signature": "GRU|MRS|2027-01-03|2027-01-17|Air France|9625.0|1|890"
   },
   "GRU-MAD-2027-01-04-2027-01-18": {
     "origin": "GRU",
@@ -2059,7 +2059,7 @@
     "last_notified_signature": "VCP|MRS|2027-01-04|2027-01-19|Azul, Tap Air Portugal|9102.0|1|955"
   },
   "_current-Madrid-cheapest": {
-    "price": 7910.0,
+    "price": 7476.0,
     "observed_at": "2026-10-12"
   },
   "_current-Madrid-value": {
@@ -2075,7 +2075,7 @@
     "observed_at": "2026-10-12"
   },
   "_current-Nice-cheapest": {
-    "price": 8556.0,
+    "price": 8396.0,
     "observed_at": "2026-10-12"
   },
   "_current-Nice-value": {
@@ -2087,23 +2087,23 @@
     "observed_at": "2026-10-12"
   },
   "_current-Paris-value": {
-    "price": 8637.0,
+    "price": 8661.0,
     "observed_at": "2026-10-12"
   },
   "_current-Lisboa-cheapest": {
-    "price": 7594.0,
+    "price": 7243.0,
     "observed_at": "2026-10-12"
   },
   "_current-Lisboa-value": {
-    "price": 8631.0,
+    "price": 8236.0,
     "observed_at": "2026-10-12"
   },
   "_current-Porto-cheapest": {
-    "price": 8572.0,
+    "price": 8073.0,
     "observed_at": "2026-10-12"
   },
   "_current-Porto-value": {
-    "price": 9362.0,
+    "price": 10485.0,
     "observed_at": "2026-10-12"
   },
   "_current-Lyon-cheapest": {
@@ -2111,7 +2111,7 @@
     "observed_at": "2026-10-12"
   },
   "_current-Lyon-value": {
-    "price": 9619.0,
+    "price": 11015.0,
     "observed_at": "2026-10-12"
   },
   "_current-Marselha-cheapest": {
@@ -2119,7 +2119,7 @@
     "observed_at": "2026-10-12"
   },
   "_current-Marselha-value": {
-    "price": 11017.0,
+    "price": 9625.0,
     "observed_at": "2026-10-12"
   },
   "GRU-ORY-2027-01-06-2027-01-18": {
@@ -2589,14 +2589,14 @@
     "arrival": "CDG",
     "outbound": "2027-01-07",
     "inbound": "2027-01-19",
-    "price": 8637.0,
+    "price": 8661.0,
     "stops": 1,
     "duration_minutes": 871,
     "airline": "KLM, Air France",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+CDG+on+2027-01-07",
-    "last_notified_signature": "GRU|CDG|2027-01-07|2027-01-19|KLM, Air France|8637.0|1|871"
+    "last_notified_signature": "GRU|CDG|2027-01-07|2027-01-19|KLM, Air France|8661.0|1|871"
   },
   "GRU-ORY-2027-01-04-2027-01-18": {
     "origin": "GRU",
@@ -3443,14 +3443,14 @@
     "arrival": "LYS",
     "outbound": "2027-01-02",
     "inbound": "2027-01-18",
-    "price": 12354.0,
+    "price": 11015.0,
     "stops": 1,
     "duration_minutes": 820,
     "airline": "Air France",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+LYS+on+2027-01-02",
-    "last_notified_signature": "GRU|LYS|2027-01-02|2027-01-18|Air France|12354.0|1|820"
+    "last_notified_signature": "GRU|LYS|2027-01-02|2027-01-18|Air France|11015.0|1|820"
   },
   "VCP-BCN-2027-01-03-2027-01-19": {
     "origin": "VCP",
