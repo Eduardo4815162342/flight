@@ -33,14 +33,14 @@
     "arrival": "CDG",
     "outbound": "2027-01-06",
     "inbound": "2027-01-17",
-    "price": 8762.0,
+    "price": 8893.0,
     "stops": 1,
     "duration_minutes": 871,
     "airline": "KLM, Air France",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+CDG+on+2027-01-06",
-    "last_notified_signature": "GRU|CDG|2027-01-06|2027-01-17|KLM, Air France|8762.0|1|871"
+    "last_notified_signature": "GRU|CDG|2027-01-06|2027-01-17|KLM, Air France|8893.0|1|871"
   },
   "GRU-MAD-2027-01-05-2027-01-18": {
     "origin": "GRU",
@@ -355,14 +355,14 @@
     "arrival": "LIS",
     "outbound": "2027-01-06",
     "inbound": "2027-01-17",
-    "price": 7966.0,
+    "price": 8011.0,
     "stops": 1,
     "duration_minutes": 850,
     "airline": "LATAM",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+LIS+on+2027-01-06",
-    "last_notified_signature": "GRU|LIS|2027-01-06|2027-01-17|LATAM|7966.0|1|850"
+    "last_notified_signature": "GRU|LIS|2027-01-06|2027-01-17|LATAM|8011.0|1|850"
   },
   "GRU-BCN-2027-01-06-2027-01-17": {
     "origin": "GRU",
@@ -1447,14 +1447,14 @@
     "arrival": "MAD",
     "outbound": "2027-01-06",
     "inbound": "2027-01-19",
-    "price": 8032.0,
+    "price": 7412.0,
     "stops": 1,
-    "duration_minutes": 1020,
-    "airline": "Avianca",
+    "duration_minutes": 935,
+    "airline": "Lufthansa",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+MAD+on+2027-01-06",
-    "last_notified_signature": "GRU|MAD|2027-01-06|2027-01-19|Avianca|8032.0|1|1020"
+    "last_notified_signature": "GRU|MAD|2027-01-06|2027-01-19|Lufthansa|7412.0|1|935"
   },
   "GRU-LIS-2027-01-06-2027-01-16": {
     "origin": "GRU",
@@ -2059,68 +2059,68 @@
     "last_notified_signature": "VCP|MRS|2027-01-04|2027-01-19|Azul, Tap Air Portugal|9102.0|1|955"
   },
   "_current-Madrid-cheapest": {
-    "price": 7058.0,
-    "observed_at": "2026-10-14"
+    "price": 7412.0,
+    "observed_at": "2026-10-15"
   },
   "_current-Madrid-value": {
-    "price": 7058.0,
-    "observed_at": "2026-10-14"
+    "price": 7412.0,
+    "observed_at": "2026-10-15"
   },
   "_current-Barcelona-cheapest": {
     "price": 7443.0,
-    "observed_at": "2026-10-14"
+    "observed_at": "2026-10-15"
   },
   "_current-Barcelona-value": {
     "price": 9070.0,
-    "observed_at": "2026-10-14"
+    "observed_at": "2026-10-15"
   },
   "_current-Nice-cheapest": {
     "price": 8401.0,
-    "observed_at": "2026-10-14"
+    "observed_at": "2026-10-15"
   },
   "_current-Nice-value": {
     "price": 8585.0,
-    "observed_at": "2026-10-14"
+    "observed_at": "2026-10-15"
   },
   "_current-Paris-cheapest": {
     "price": 8353.0,
-    "observed_at": "2026-10-14"
+    "observed_at": "2026-10-15"
   },
   "_current-Paris-value": {
-    "price": 8899.0,
-    "observed_at": "2026-10-14"
+    "price": 8893.0,
+    "observed_at": "2026-10-15"
   },
   "_current-Lisboa-cheapest": {
-    "price": 7587.0,
-    "observed_at": "2026-10-14"
+    "price": 8011.0,
+    "observed_at": "2026-10-15"
   },
   "_current-Lisboa-value": {
-    "price": 7587.0,
-    "observed_at": "2026-10-14"
+    "price": 8011.0,
+    "observed_at": "2026-10-15"
   },
   "_current-Porto-cheapest": {
     "price": 7552.0,
-    "observed_at": "2026-10-14"
+    "observed_at": "2026-10-15"
   },
   "_current-Porto-value": {
-    "price": 7862.0,
-    "observed_at": "2026-10-14"
+    "price": 10076.0,
+    "observed_at": "2026-10-15"
   },
   "_current-Lyon-cheapest": {
-    "price": 9469.0,
-    "observed_at": "2026-10-14"
+    "price": 9240.0,
+    "observed_at": "2026-10-15"
   },
   "_current-Lyon-value": {
-    "price": 10057.0,
-    "observed_at": "2026-10-14"
+    "price": 9962.0,
+    "observed_at": "2026-10-15"
   },
   "_current-Marselha-cheapest": {
     "price": 8811.0,
-    "observed_at": "2026-10-14"
+    "observed_at": "2026-10-15"
   },
   "_current-Marselha-value": {
     "price": 8811.0,
-    "observed_at": "2026-10-14"
+    "observed_at": "2026-10-15"
   },
   "GRU-ORY-2027-01-06-2027-01-18": {
     "origin": "GRU",
@@ -2435,14 +2435,14 @@
     "arrival": "LYS",
     "outbound": "2027-01-06",
     "inbound": "2027-01-16",
-    "price": 9221.0,
+    "price": 9240.0,
     "stops": 1,
     "duration_minutes": 1276,
     "airline": "KLM",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+LYS+on+2027-01-06",
-    "last_notified_signature": "GRU|LYS|2027-01-06|2027-01-16|KLM|9221.0|1|1276"
+    "last_notified_signature": "GRU|LYS|2027-01-06|2027-01-16|KLM|9240.0|1|1276"
   },
   "GRU-MAD-2027-01-03-2027-01-18": {
     "origin": "GRU",
@@ -3079,14 +3079,14 @@
     "arrival": "OPO",
     "outbound": "2027-01-06",
     "inbound": "2027-01-17",
-    "price": 9442.0,
+    "price": 10076.0,
     "stops": 1,
     "duration_minutes": 800,
     "airline": "Azul, Tap Air Portugal",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+VCP+to+OPO+on+2027-01-06",
-    "last_notified_signature": "VCP|OPO|2027-01-06|2027-01-17|Azul, Tap Air Portugal|9442.0|1|800"
+    "last_notified_signature": "VCP|OPO|2027-01-06|2027-01-17|Azul, Tap Air Portugal|10076.0|1|800"
   },
   "VCP-OPO-2027-01-07-2027-01-19": {
     "origin": "VCP",
@@ -3703,5 +3703,19 @@
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+VCP+to+LIS+on+2027-01-07",
     "last_notified_signature": "VCP|LIS|2027-01-07|2027-01-19|Azul|7587.0|0|580"
+  },
+  "VCP-LYS-2027-01-04-2027-01-19": {
+    "origin": "VCP",
+    "arrival": "LYS",
+    "outbound": "2027-01-04",
+    "inbound": "2027-01-19",
+    "price": 9962.0,
+    "stops": 1,
+    "duration_minutes": 970,
+    "airline": "Azul, Tap Air Portugal",
+    "departure": "",
+    "arrival_time": "",
+    "link": "https://www.google.com/travel/flights?q=flights+from+VCP+to+LYS+on+2027-01-04",
+    "last_notified_signature": "VCP|LYS|2027-01-04|2027-01-19|Azul, Tap Air Portugal|9962.0|1|970"
   }
 }
