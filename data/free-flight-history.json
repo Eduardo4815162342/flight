@@ -1895,14 +1895,14 @@
     "arrival": "MRS",
     "outbound": "2027-01-02",
     "inbound": "2027-01-16",
-    "price": 10799.0,
+    "price": 11626.0,
     "stops": 1,
-    "duration_minutes": 885,
+    "duration_minutes": 1220,
     "airline": "Air France",
     "departure": "",
     "arrival_time": "",
     "link": "https://www.google.com/travel/flights?q=flights+from+GRU+to+MRS+on+2027-01-02",
-    "last_notified_signature": "GRU|MRS|2027-01-02|2027-01-16|Air France|10799.0|1|885"
+    "last_notified_signature": "GRU|MRS|2027-01-02|2027-01-16|Air France|11626.0|1|1220"
   },
   "GRU-ORY-2027-01-06-2027-01-16": {
     "origin": "GRU",
@@ -2115,11 +2115,11 @@
     "observed_at": "2026-11-27"
   },
   "_current-Marselha-cheapest": {
-    "price": 10301.0,
+    "price": 11626.0,
     "observed_at": "2026-11-27"
   },
   "_current-Marselha-value": {
-    "price": 10964.0,
+    "price": 11626.0,
     "observed_at": "2026-11-27"
   },
   "GRU-ORY-2027-01-06-2027-01-18": {
